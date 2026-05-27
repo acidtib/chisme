@@ -1,0 +1,7 @@
+<task-notification>
+<task-id>bw3h0jr6k</task-id>
+<tool-use-id>toolu_0185Hpp1SPJJr7SPjQuDzN1W</tool-use-id>
+<output-file>/tmp/claude-1000/-home-acidtib-Code-entire-chisme/5aab98c1-e5d2-47a1-8b01-81907f2c0e5b/tasks/bw3h0jr6k.output</output-file>
+<status>completed</status>
+<summary>Background command "Watch the re-triggered v0.2.2 release run" completed (exit code 0)</summary>
+</task-notification>
