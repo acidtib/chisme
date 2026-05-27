@@ -1,18 +1,20 @@
 #!/usr/bin/env bun
 /**
- * chisme CLI entry point.
+ * chisme CLI entry point and command dispatch.
  *
- * Stage 1 skeleton: `version`, `help`, `status`, and `agent install` are
- * functional. `search`, `index`/`sync`, and `list` are declared but not yet
- * implemented; they exit non-zero with a pointer to PLAN.md. The dispatch,
- * embedding plumbing, and binary build are real so the rest can be filled in.
+ * Local search and viewer for AI coding sessions captured as Entire checkpoints.
+ * Keyword search always works; semantic search is enabled when sqlite-vec and the
+ * embedding model are available, and degrades gracefully otherwise.
  */
 import { Database } from "bun:sqlite";
-import { mkdirSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { dataDir, databasePath } from "@chisme/core";
+import { isEmbedderInstalled } from "@chisme/core";
 import { loadVecExtension } from "./runtime/vec.ts";
-import agentTemplatePath from "./agent/chisme-search.md" with { type: "file" };
+import { colors } from "./cli/colors.ts";
+import { cmdSearch } from "./commands/search.ts";
+import { cmdSync } from "./commands/sync.ts";
+import { cmdList } from "./commands/list.ts";
+import { cmdStatus } from "./commands/status.ts";
+import { cmdAgent } from "./commands/agent.ts";
 
 // Replaced at build time via `--define BUILD_VERSION`; falls back in dev.
 declare const BUILD_VERSION: string | undefined;
@@ -29,60 +31,29 @@ Commands:
   status            Show index and environment status
   list              List recent checkpoints
   agent install     Write the Claude Code search subagent (.claude/agents)
-  help              Show this help
+  help [command]    Show help
   version           Show version and capabilities
 
-See PLAN.md for the build roadmap.`;
-
-const NOT_IMPLEMENTED = new Set(["search", "index", "sync", "list"]);
+Run 'chisme <command> --help' for command-specific flags.`;
 
 async function cmdVersion(): Promise<void> {
   const db = new Database(":memory:");
   const vec = await loadVecExtension(db);
   db.close();
+  const embedder = await isEmbedderInstalled();
   console.log(`chisme ${VERSION}`);
   console.log(`bun ${Bun.version}`);
   console.log(`platform ${process.platform}-${process.arch}`);
   console.log(
     `semantic search: ${
-      vec.available ? `available (sqlite-vec ${vec.version}, ${vec.source})` : "unavailable (keyword-only)"
+      vec.available
+        ? `${embedder ? "available" : "storage only (embedder not installed)"} (sqlite-vec ${vec.version}, ${vec.source})`
+        : "unavailable (keyword-only)"
     }`,
   );
 }
 
-async function cmdStatus(): Promise<void> {
-  const db = new Database(":memory:");
-  const vec = await loadVecExtension(db);
-  db.close();
-  const dbPath = databasePath();
-  console.log(`chisme ${VERSION}`);
-  console.log(`data dir:   ${dataDir()}`);
-  console.log(`index db:   ${dbPath} ${existsSync(dbPath) ? "(present)" : "(not created yet)"}`);
-  console.log(`keyword search (FTS5): available`);
-  console.log(
-    `semantic search:       ${vec.available ? `available (sqlite-vec ${vec.version})` : "unavailable (keyword-only)"}`,
-  );
-  console.log("");
-  console.log("Indexing is not implemented in this build yet (Stage 1 in progress). See PLAN.md.");
-}
-
-async function cmdAgent(args: string[]): Promise<void> {
-  if (args[0] !== "install") {
-    console.error("usage: chisme agent install [--force]");
-    process.exit(1);
-  }
-  const force = args.includes("--force");
-  const dir = join(process.cwd(), ".claude", "agents");
-  const dest = join(dir, "chisme-search.md");
-  if (existsSync(dest) && !force) {
-    console.error(`chisme: ${dest} already exists. Use --force to overwrite.`);
-    process.exit(1);
-  }
-  mkdirSync(dir, { recursive: true });
-  await Bun.write(dest, await Bun.file(agentTemplatePath).text());
-  console.log(`Wrote ${dest}`);
-  console.log("The chisme-search subagent calls 'chisme search --json'.");
-}
+const COMMANDS = new Set(["search", "index", "sync", "list", "status", "agent"]);
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
@@ -97,27 +68,47 @@ async function main(): Promise<void> {
       return;
     case "help":
     case "--help":
-    case "-h":
-      console.log(USAGE);
+    case "-h": {
+      // `chisme help <command>` delegates to that command's own --help.
+      const target = rest[0];
+      if (target && COMMANDS.has(target)) {
+        await dispatch(target, ["--help"]);
+      } else {
+        console.log(USAGE);
+      }
       return;
+    }
+    case "search":
+    case "index":
+    case "sync":
+    case "list":
     case "status":
-      await cmdStatus();
-      return;
     case "agent":
-      await cmdAgent(rest);
+      await dispatch(command, rest);
       return;
     default:
-      if (NOT_IMPLEMENTED.has(command)) {
-        console.error(`chisme: '${command}' is not implemented yet in this build (Stage 1 in progress).`);
-        console.error("See PLAN.md for the roadmap.");
-        process.exit(1);
-      }
       console.error(`chisme: unknown command '${command}'. Run 'chisme help'.`);
       process.exit(1);
   }
 }
 
+async function dispatch(command: string, rest: string[]): Promise<void> {
+  switch (command) {
+    case "search":
+      return cmdSearch(rest);
+    case "index":
+    case "sync":
+      return cmdSync(rest);
+    case "list":
+      return cmdList(rest);
+    case "status":
+      return cmdStatus(VERSION);
+    case "agent":
+      return cmdAgent(rest);
+  }
+}
+
 main().catch((error: unknown) => {
-  console.error(`chisme: ${error instanceof Error ? error.message : String(error)}`);
+  console.error(`${colors.red("chisme:")} ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 });

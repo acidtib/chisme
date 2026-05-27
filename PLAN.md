@@ -499,28 +499,35 @@ Status keys: DONE means written, TODO means not started.
 - [DONE] `tsconfig.json`.
 - [DONE] `src/types.ts`: data model.
 - [DONE] `src/config/paths.ts`: XDG data dir, `databasePath()`, `modelCacheDir()`, `ensureDataDir()`.
-- [TODO] `src/git/repo.ts`: git CLI wrapper. `exec`, `getRoot`, `getRemoteUrl`, `slugFromRemote`
-  (with `local/<dirname>` fallback), `branchExists`/`refExists`, `fetchCheckpoints`,
-  `resolveCheckpointsRef`, `lsTree(ref,path)`, `readBlob(ref,path)`, `findCommitByCheckpointId`,
+- [DONE] `src/git/repo.ts`: git CLI wrapper. `git` exec, `gitRoot`, `remoteUrl`, `slugFromRemoteUrl`
+  plus `repoSlug` (with `local/<dirname>` fallback), `refExists`, `fetchCheckpoints`,
+  `resolveCheckpointsRef`, `listTree(ref,path)`, `readBlob(ref,path)`, `findCommitByCheckpointId`,
   `getCommitInfo`, `getDiffStats(sha)`.
-- [TODO] `src/git/checkpoints.ts`: `scanCheckpointIds(repo, ref)`, `readCheckpoint(repo, ref, id)` to
-  `RawCheckpoint` (top metadata plus enumerated sessions plus transcripts plus prompt).
-- [TODO] `src/parser/transcript.ts`: `extractPlainText(jsonl)`, `analyze(jsonl)` (counts).
-- [TODO] `src/db/database.ts`: open `bun:sqlite`, pragmas, attempt `sqlite-vec` load (try/catch to set
-  `vecAvailable`), expose the handle and flags. Support both dev (`getLoadablePath()`) and the binary
-  (embedded extract; see Section 10 and 11).
-- [TODO] `src/db/schema.ts`: DDL from Section 5 plus a migration runner keyed on `meta.schema_version`.
-- [TODO] `src/db/checkpoints.ts`: `knownCheckpointIds(repoId)`, `upsertCheckpoint(...)` (writes row
-  plus FTS plus optional vector), `recentCheckpoints(...)`, counts.
-- [TODO] `src/db/repos.ts`: `upsertRepo(slug, url, root)`, `getRepoBySlug`, `setLastSync`.
-- [TODO] `src/embeddings/embedder.ts`: lazy `await import("@huggingface/transformers")`, set
+- [DONE] `src/git/checkpoints.ts`: `scanCheckpointIds(root, ref)` (one recursive `ls-tree -d`),
+  `readCheckpoint(root, ref, id)` to `RawCheckpoint` (top metadata plus enumerated sessions plus
+  transcripts plus prompt). Sessions enumerated from git, not the `sessions[]` array.
+- [DONE] `src/parser/transcript.ts`: `extractPlainText(jsonl)` (handles nested `tool_result` blocks),
+  `analyze(jsonl)` (message and tool counts).
+- [DONE] `src/db/database.ts`: open `bun:sqlite`, pragmas, attempt `sqlite-vec` load via an injectable
+  `VecLoader` (default resolves `getLoadablePath()`; the CLI injects its embedded-aware loader), set
+  `vecAvailable`, apply schema, expose the handle.
+- [DONE] `src/db/schema.ts`: DDL from Section 5 plus a migration runner keyed on `meta.schema_version`
+  (vec0 table created only when vec loaded).
+- [DONE] `src/db/checkpoints.ts`: `knownCheckpointIds`, `upsertCheckpoint` (delete-then-insert keyed by
+  `(repo_id, checkpoint_id)`, re-links FTS and vec to the fresh rowid), `clearRepo` (for `--full`),
+  `recentCheckpoints`, `getCheckpointsByPks`, `countCheckpoints`.
+- [DONE] `src/db/repos.ts`: `upsertRepo(slug, url, root)`, `getRepoBySlug`, `allRepos`, `setLastSync`.
+- [DONE] `src/embeddings/embedder.ts`: lazy `await import("@huggingface/transformers")`, sets
   `env.cacheDir = modelCacheDir()`, `pipeline("feature-extraction","Xenova/all-MiniLM-L6-v2")`,
-  `embed(text): Promise<Float32Array | null>` (null if unavailable), `isAvailable()`.
-- [TODO] `src/index/sync.ts`: the Section 6 flow. `syncRepo(opts)` to `SyncResult`.
-- [TODO] `src/search/search.ts`: the Section 7 flow. `search(query, opts)` to `SearchResponse` (schema
-  Section 4).
-- [TODO] `src/search/fts.ts`: sanitize query to a safe FTS match string; bm25 query helper.
-- [DONE] `src/index.ts`: barrel re-exports (currently types plus config paths).
+  `embed(text): Promise<Float32Array | null>`, `isEmbedderAvailable()`, `isEmbedderInstalled()`
+  (import-only probe so `status` does not download the model).
+- [DONE] `src/index/sync.ts`: the Section 6 flow. `syncRepo(opts)` to `SyncResult`.
+- [DONE] `src/search/search.ts`: the Section 7 flow. `search(query, opts)` to `{ response, info }`
+  where `response` is the exact Section 4 `SearchResponse` and `info` carries scope notes for human
+  output. RRF fusion, match-all on empty query.
+- [DONE] `src/search/fts.ts`: `sanitizeFtsQuery` quotes each token so operators and punctuation cannot
+  crash MATCH.
+- [DONE] `src/index.ts`: barrel re-exports (types, config, git, parser, db, embeddings, index, search).
 
 ### `apps/cli` (the `chisme` binary)
 - [DONE] `package.json`: `name:"chisme"`, `bin`, dep `@chisme/core` (workspace `*`), the per-platform
@@ -530,20 +537,23 @@ Status keys: DONE means written, TODO means not started.
 - [DONE] `build.ts`: `Bun.build` compile. Native build to `./chisme`, `--all` cross-compile to `./dist`
   with `SHA256SUMS`. Embeds the matching `vec0` extension (temporarily rewrites
   `src/embedded/vec-extension.ts`) and injects `BUILD_VERSION`. See Section 11.
-- [DONE] `src/main.ts`: entry and dispatch. `version`, `help`, `status`, and `agent install` work;
-  `search`/`index`/`sync`/`list` are stubs that exit non-zero pending core.
+- [DONE] `src/main.ts`: entry and dispatch. All commands wired to core: `version`, `help`
+  (plus `help <command>`), `status`, `agent install`, `search`, `index`/`sync`, and `list`.
 - [DONE] `src/agent/chisme-search.md`: the Section 9 template (embedded via `with { type: "file" }`,
   written by `agent install`).
 - [DONE] `src/embedded/vec-extension.ts`: build-time pointer to the embedded extension (null in dev).
 - [DONE] `src/runtime/vec.ts`: loads `sqlite-vec` (embedded extract first, then node_modules), never
   throws, reports availability.
 - [DONE] `src/embed.d.ts`: module declarations for `*.md` and `*.bin` file imports.
-- [TODO] `src/cli/args.ts`: `util.parseArgs` wrappers plus the inline-filter parser (dispatch in
-  `main.ts` is minimal for now; factor this out as the command set grows).
-- [TODO] `src/cli/colors.ts`: tiny ANSI helper (respect `NO_COLOR` and TTY).
-- [TODO] `src/cli/output.ts`: human table and json printers; TTY detection for auto-json.
-- [TODO] `src/commands/search.ts`, `sync.ts` (registered as both `index` and `sync`), `list.ts`, and
-  the real implementations behind the current `status` and `agent` skeletons. Wire these to core.
+- [DONE] `src/cli/args.ts`: `util.parseArgs` wrappers (`parseSearchArgs`, `parseSyncArgs`,
+  `parseListArgs`) plus `parseInlineFilters` for `author:`/`date:`/`branch:`/`repo:` (quoted values
+  supported; explicit flags win over inline).
+- [DONE] `src/cli/colors.ts`: tiny ANSI helper (respects `NO_COLOR` and TTY).
+- [DONE] `src/cli/output.ts`: human table and json printers; `shouldUseJson` auto-selects json when
+  stdout is not a TTY.
+- [DONE] `src/cli/db.ts`: opens core's database with the CLI's embedded-aware vec loader.
+- [DONE] `src/commands/search.ts`, `sync.ts` (registered as both `index` and `sync`), `list.ts`,
+  `status.ts`, and `agent.ts`. All wired to core.
 
 ### `apps/server` (`@chisme/server`), Stage 2 stub
 - [TODO] `package.json` (dep `@chisme/core`), `src/main.ts` = minimal `Bun.serve` with `/api/health`
@@ -618,13 +628,16 @@ real.
 
 ## 16. Current status
 
-- DONE: monorepo scaffold; `@chisme/core` types, config paths, and barrel; the `chisme` CLI skeleton
-  (`version`/`help`/`status`/`agent install` working, other commands stubbed); `build.ts` single-binary
-  build with embedded `sqlite-vec` (validated standalone); `bin/install.sh`; the per-OS release
-  workflow `.github/workflows/release.yml`; `CLAUDE.md`; this plan.
-- TODO: the core engine, in order: `core/git` (repo plus checkpoints), `core/parser`, `core/db`
-  (database, schema, repos, checkpoints), `core/embeddings`, `core/index` (sync), `core/search`
-  (plus fts). Then wire the CLI `search`/`index`/`sync`/`list`/`status` commands to core and verify on
-  a real repo with `entire/checkpoints/v1`. Then the `server` and `web` stubs, `README.md`, `LICENSE`,
-  and the optional onnxruntime-web embedder spike (Section 11).
+- DONE: monorepo scaffold; `bin/install.sh`; the per-OS release workflow; `CLAUDE.md`; `README.md`;
+  `LICENSE`; this plan.
+- DONE: the full Stage 1 core engine in `@chisme/core`: `git` (repo plus checkpoints), `parser`,
+  `db` (database, schema, repos, checkpoints), `embeddings`, `index` (sync), and `search` (plus fts).
+- DONE: the `chisme` CLI wired to core. `search`, `index`/`sync`, `list`, `status`, `version`, `help`,
+  and `agent install` all work, with `--json` (auto when piped), inline filters, and color/TTY handling.
+- DONE: verified end to end against a real `entire/checkpoints/v1` branch (this repo): index, hybrid
+  search (matchType `both`), match-all, FTS crash-input sanitization, `--full` reindex, and a standalone
+  compiled binary that loads the embedded `sqlite-vec` extension (keyword + vector storage; embedder not
+  bundled, so semantic degrades to keyword-only in the pure binary, as expected).
+- TODO: the `server` and `web` Stage 2 stubs, and the optional onnxruntime-web embedder spike that would
+  unlock semantic search inside the pure binary (Section 11).
 ```

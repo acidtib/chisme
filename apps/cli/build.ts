@@ -27,7 +27,7 @@ const pkg = (await Bun.file(join(CLI_DIR, "package.json")).json()) as { version:
 const VERSION = pkg.version;
 
 interface TargetSpec {
-  target: string;
+  target: Bun.Build.CompileTarget;
   pkg: string;
   ext: string;
   out: string;
