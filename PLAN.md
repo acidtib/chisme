@@ -454,8 +454,10 @@ The workflow runs on a `v*` tag (and `workflow_dispatch`). Each matrix job:
   `macos-15-intel` to `chisme-darwin-x64`, `macos-15` to `chisme-darwin-arm64`, `windows-latest` to
   `chisme-windows-x64.exe`. (The retired `macos-13` Intel runner was replaced by `macos-15-intel`.)
 - `bun install --frozen-lockfile` (installs that host's native `sqlite-vec`), then `bun run build:cli`
-  (native build; `build.ts` embeds the extension and injects `BUILD_VERSION`), then a standalone smoke
-  test (`chisme version` from a temp dir).
+  (native build; `build.ts` embeds the extension and injects `BUILD_VERSION`), then a smoke test: the
+  binary runs `version`, indexes this repo's own checkpoints (`chisme index` fetches
+  `entire/checkpoints/v1` from origin), and `chisme search --json` must return a `matchType: "both"`
+  result, so a broken embedded embedder fails the release instead of shipping.
 - uploads the binary as an artifact.
 
 A final `release` job downloads all artifacts, writes `SHA256SUMS` (`sha256sum chisme-*`), and
@@ -669,8 +671,10 @@ real.
 - DONE: the onnxruntime-web embedder spike, integrated. The compiled binary now does full hybrid
   search standalone (`matchType: "both"` confirmed from a clean dir), so semantic no longer requires
   the `bun install` path. See Section 11 and the new rows in Section 10.
-- TODO: the web UI on top of the server routes. Optional later: per-OS release smoke test asserting
-  `matchType: "both"`; a `-baseline` / musl matrix; multi-threaded WASM. A future additive change can
+- DONE: the per-OS release smoke test asserts `matchType: "both"` (indexes this repo and searches), so
+  a broken embedded embedder fails the release.
+- TODO: the web UI on top of the server routes. Optional later: a `-baseline` / musl matrix;
+  multi-threaded WASM. A future additive change can
   split per-session/message tables so `/api/checkpoints/:id` returns structured sessions rather than
   one transcript blob.
 ```

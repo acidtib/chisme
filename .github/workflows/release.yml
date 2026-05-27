@@ -49,12 +49,24 @@ jobs:
           mkdir -p dist
           mv "${{ matrix.bin }}" "dist/${{ matrix.asset }}"
 
-      - name: Smoke test (runs standalone, reports embedded semantic search)
+      - name: Smoke test (standalone hybrid search end to end)
         shell: bash
         run: |
-          workdir="$(mktemp -d)"
-          cd "$workdir"
-          "$GITHUB_WORKSPACE/dist/${{ matrix.asset }}" version
+          bin="$GITHUB_WORKSPACE/dist/${{ matrix.asset }}"
+          "$bin" version
+          # Index this repo's own checkpoints (chisme index fetches the
+          # entire/checkpoints/v1 branch from origin), then assert that semantic
+          # search actually ran and fused with keyword search. A broken embedder
+          # in the binary would produce only "keyword" matches and fail here, so a
+          # regression cannot ship silently. The compact --json has no spaces.
+          "$bin" index
+          "$bin" search "semantic search" --json > result.json
+          cat result.json
+          if ! grep -q '"matchType":"both"' result.json; then
+            echo "::error::smoke test failed for ${{ matrix.asset }}: no 'both' match, the embedded semantic search may be broken"
+            exit 1
+          fi
+          echo "ok: hybrid search returned a 'both' (keyword + semantic) match"
 
       - uses: actions/upload-artifact@v7
         with:
