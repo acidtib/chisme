@@ -1,0 +1,91 @@
+/**
+ * Data model for chisme.
+ *
+ * These types mirror the on-disk layout that Entire-compatible tooling writes to
+ * the `entire/checkpoints/v1` git branch. chisme only ever *reads* this data; it
+ * never captures sessions or writes to that branch.
+ */
+
+/** A repository known to the local index, identified by its `owner/repo` slug. */
+export interface RepoRecord {
+  id: number;
+  /** `owner/repo`, derived from the git remote URL. */
+  slug: string;
+  remoteUrl: string | null;
+  rootPath: string;
+  lastSync: string | null;
+}
+
+export interface TokenUsage {
+  input_tokens?: number;
+  output_tokens?: number;
+  cache_creation_tokens?: number;
+  cache_read_tokens?: number;
+  api_call_count?: number;
+}
+
+export interface DiffStats {
+  additions: number;
+  deletions: number;
+}
+
+/** Paths to a single session's files within a checkpoint directory. */
+export interface SessionFilePaths {
+  metadata?: string;
+  transcript?: string;
+  context?: string;
+  prompt?: string;
+  content_hash?: string;
+}
+
+/** Top-level `metadata.json` for a checkpoint (the "checkpoint summary"). */
+export interface CheckpointSummary {
+  checkpoint_id: string;
+  strategy?: string;
+  branch?: string;
+  checkpoints_count?: number;
+  files_touched?: string[];
+  sessions?: SessionFilePaths[];
+  token_usage?: TokenUsage;
+  created_at?: string;
+  commit_hash?: string;
+}
+
+/** Per-session `metadata.json` (one level below the checkpoint summary). */
+export interface SessionMetadata {
+  checkpoint_id?: string;
+  session_id?: string;
+  strategy?: string;
+  agent?: string;
+  created_at?: string;
+  branch?: string;
+  token_usage?: TokenUsage;
+  summary?: { text?: string; tool_breakdown?: Record<string, number> };
+}
+
+/** Git commit metadata linked to a checkpoint via its `Entire-Checkpoint` trailer. */
+export interface CommitInfo {
+  hash: string;
+  subject: string;
+  author: string;
+  email: string;
+  date: string;
+}
+
+/** A checkpoint as read from git, before it is indexed. */
+export interface RawCheckpoint {
+  id: string;
+  /** Path within the checkpoints branch, e.g. `a3/b2c4d5e6f7`. */
+  path: string;
+  summary: CheckpointSummary;
+  sessions: RawSession[];
+}
+
+export interface RawSession {
+  index: number;
+  metadata: SessionMetadata;
+  /** Raw JSONL transcript text (may be empty if unavailable). */
+  transcriptJsonl: string;
+  /** The user prompt(s) that opened the session. */
+  prompt: string;
+}
