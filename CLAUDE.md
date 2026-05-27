@@ -25,7 +25,8 @@ and the file-by-file build plan. Do not relitigate decisions recorded there with
 
 - `bun install`: install all workspaces.
 - `bun run chisme -- <args>`: run the CLI in dev (e.g. `bun run chisme -- search "auth"`).
-- `bun run build:cli`: compile the single `chisme` binary.
+- `bun run build:cli`: compile the single `chisme` binary to `./chisme`.
+- `bun run install:cli`: build then install the binary to `~/.local/bin` (override `CHISME_INSTALL_DIR`).
 - `bun run --filter '*' typecheck`: typecheck every workspace.
 
 ## Conventions

@@ -31,8 +31,12 @@ Or build from source (requires [Bun](https://bun.sh)):
 git clone https://github.com/acidtib/chisme
 cd chisme
 bun install
-bun run build:cli   # produces ./chisme
+bun run install:cli   # builds and installs ./chisme to ~/.local/bin
 ```
+
+`install:cli` builds the binary and copies it onto your PATH. Override the target
+with `CHISME_INSTALL_DIR=/some/bin bun run install:cli`. To build without
+installing, use `bun run build:cli` (produces `./chisme` at the repo root).
 
 ## Usage
 

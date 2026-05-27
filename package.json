@@ -12,6 +12,7 @@
   "scripts": {
     "chisme": "bun run apps/cli/src/main.ts",
     "build:cli": "bun run apps/cli/build.ts",
+    "install:cli": "bun run build:cli && bun run apps/cli/install.ts",
     "dev:server": "bun run --filter @chisme/server dev",
     "dev:web": "bun run --filter @chisme/web dev",
     "typecheck": "bun run --filter '*' typecheck"
