@@ -286,3 +286,7 @@ Run 'chisme <command> --help' for command-specific flags.
 usage: chisme agent install [agent] [--force]
 > chisme agent install
 chisme: /home/acidtib/Code/entire/chisme/.claude/agents/chisme-search.md already exists. Use --force to overwrite.
+
+---
+
+cool did oyu test it fevore we commti it
