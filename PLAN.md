@@ -324,8 +324,8 @@ Commands:
                         --limit <N>   index only the newest N checkpoints
   status              Show index and current-repo state (counts, last sync, vec and model availability).
   list                List recent checkpoints from the index.   --repo, --limit
-  agent install [agent]  Write the chisme-search subagent for an AI coding tool.
-                        agent = claude (default), codex, gemini, cursor, pi, or all
+  agent install <agent>  Write the chisme-search subagent for an AI coding tool (agent required).
+                        agent = claude, codex, gemini, cursor, pi, or all
                         --force       overwrite if present
   help [command]      Show help.
   version             Show version.
@@ -337,10 +337,10 @@ Global: --help/-h, --version/-v
 
 ## 9. Search subagents (Claude, Codex, Gemini, Cursor, Pi)
 
-`chisme agent install [agent]` writes a chisme-search subagent for an AI coding tool, adapted to call
-`chisme search --json` against the local index:
+`chisme agent install <agent>` writes a chisme-search subagent for an AI coding tool, adapted to call
+`chisme search --json` against the local index. The agent argument is required:
 
-- `claude` (default): `.claude/agents/chisme-search.md` (frontmatter `tools: Bash`, `model: haiku`).
+- `claude`: `.claude/agents/chisme-search.md` (frontmatter `tools: Bash`, `model: haiku`).
 - `codex`: `.codex/agents/chisme-search.toml` (`sandbox_mode = "read-only"`, `developer_instructions`).
 - `gemini`: `.gemini/agents/chisme-search.md` (frontmatter `kind: local`, `tools: [run_shell_command]`).
 - `cursor`: `.cursor/commands/chisme-search.md` (a `/chisme-search` slash command, plain markdown).
@@ -589,7 +589,7 @@ Status keys: DONE means written, TODO means not started.
 - [DONE] `src/main.ts`: entry and dispatch. All commands wired to core: `version`, `help`
   (plus `help <command>`), `status`, `agent install`, `search`, `sync`, and `list`.
 - [DONE] `src/agent/chisme-search.{claude.md,codex.toml,gemini.md,cursor.md,pi.md}`: the Section 9
-  templates (embedded via `with { type: "file" }`, written by `agent install [agent]`).
+  templates (embedded via `with { type: "file" }`, written by `agent install <agent>`).
 - [DONE] `src/embedded/vec-extension.ts`: build-time pointer to the embedded extension (null in dev).
 - [DONE] `src/embedded/embedder-assets.ts`: build-time pointer to the embedded onnxruntime-web WASM
   binary and its mjs loader (null in dev; build.ts rewrites it during compile).

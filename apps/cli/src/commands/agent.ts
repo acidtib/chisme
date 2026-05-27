@@ -1,5 +1,5 @@
 /**
- * `chisme agent install [agent]` - write the chisme-search subagent.
+ * `chisme agent install <agent>` - write the chisme-search subagent.
  *
  * Mirrors the search subagents Entire ships, adapted to call `chisme search --json`
  * against the local index. One template per supported tool, each shipped embedded
@@ -33,12 +33,13 @@ const VARIANTS: Record<string, AgentVariant> = {
   pi: { label: "Pi", dir: join(".pi", "skills", "chisme-search"), file: "SKILL.md", template: piTemplate },
 };
 
-const HELP = `chisme agent install [agent] [--force]
+const HELP = `chisme agent install <agent> [--force]
 
 Write the chisme-search subagent (it calls 'chisme search --json') for an AI coding tool.
+An agent is required.
 
 Agents:
-  claude   Claude Code   .claude/agents/chisme-search.md         (default)
+  claude   Claude Code   .claude/agents/chisme-search.md
   codex    Codex         .codex/agents/chisme-search.toml
   gemini   Gemini CLI    .gemini/agents/chisme-search.md
   cursor   Cursor        .cursor/commands/chisme-search.md
@@ -54,12 +55,19 @@ export async function cmdAgent(argv: string[]): Promise<void> {
     return;
   }
   if (argv[0] !== "install") {
-    console.error("usage: chisme agent install [agent] [--force]");
+    console.error("usage: chisme agent install <agent> [--force]");
     process.exit(1);
   }
 
   const force = argv.includes("--force");
-  const target = argv.slice(1).find((a) => !a.startsWith("-")) ?? "claude";
+  const target = argv.slice(1).find((a) => !a.startsWith("-"));
+  if (!target) {
+    console.error(
+      `usage: chisme agent install <agent> [--force]\n` +
+        `chisme: an agent is required. Choose one of: ${Object.keys(VARIANTS).join(", ")}, all.`,
+    );
+    process.exit(1);
+  }
 
   let names: string[];
   if (target === "all") {
