@@ -19,7 +19,7 @@ import { cmdAgent } from "./commands/agent.ts";
 
 // Replaced at build time via `--define BUILD_VERSION`; falls back in dev.
 declare const BUILD_VERSION: string | undefined;
-const VERSION = typeof BUILD_VERSION !== "undefined" ? BUILD_VERSION : "0.2.2-dev";
+const VERSION = typeof BUILD_VERSION !== "undefined" ? BUILD_VERSION : "0.2.3-dev";
 
 const USAGE = `chisme ${VERSION} - an Entire companion CLI for local session search
 
