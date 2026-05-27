@@ -1,6 +1,6 @@
 {
   "name": "@chisme/core",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "description": "Shared core for chisme: git checkpoint reading, the local SQLite index, embeddings, and hybrid search.",
   "license": "MIT",
