@@ -5,8 +5,8 @@ An Entire companion CLI. chisme indexes the AI coding sessions that
 machine. No entire.io account, no hosted service, no GitHub app authorization.
 
 > Status: Stage 1 complete. Indexing and hybrid search work, including semantic
-> search inside the single binary. The server and web UI are Stage 2 stubs. See
-> [PLAN.md](PLAN.md) for the roadmap.
+> search inside the single binary. The HTTP API (server) is implemented; the web
+> UI is still a Stage 2 placeholder. See [PLAN.md](PLAN.md) for the roadmap.
 
 ## Why
 
@@ -41,15 +41,16 @@ installing, use `bun run build:cli` (produces `./chisme` at the repo root).
 ## Usage
 
 ```
-chisme index               # fetch and index this repo's checkpoints   (planned)
-chisme search "query"      # hybrid local search                       (planned)
+chisme index               # fetch and index this repo's checkpoints
+chisme search "query"      # hybrid local search
                            #   flags: --json --limit --page
                            #          --author --branch --date --repo
-chisme list                # list recent checkpoints                   (planned)
-chisme status              # index and environment status              (works)
-chisme agent install       # install the chisme-search Claude subagent (works)
-chisme version             # version and capabilities                  (works)
-chisme help                # help                                      (works)
+                           #   inline filters: author: date: branch: repo:
+chisme list                # list recent checkpoints
+chisme status              # index and environment status
+chisme agent install       # install the chisme-search Claude subagent
+chisme version             # version and capabilities
+chisme help                # help
 ```
 
 `chisme agent install` writes a Claude Code subagent (`.claude/agents/chisme-search.md`)
@@ -71,11 +72,13 @@ This is a Bun workspace monorepo:
 
 - `packages/core` (`@chisme/core`): git checkpoint reading, the SQLite index, embeddings, search.
 - `apps/cli` (`chisme`): the command-line tool.
-- `apps/server` (`@chisme/server`) and `apps/web` (`@chisme/web`): Stage 2, stubs for now.
+- `apps/server` (`@chisme/server`): read-only HTTP API over core (Stage 2, implemented).
+- `apps/web` (`@chisme/web`): browser UI (Stage 2, placeholder).
 
 ```sh
 bun install
 bun run chisme -- help          # run the CLI in dev
+bun run dev:server              # run the HTTP API on http://localhost:4123
 bun run --filter '*' typecheck  # typecheck every workspace
 ```
 

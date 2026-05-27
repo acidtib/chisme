@@ -17,9 +17,9 @@ and the file-by-file build plan. Do not relitigate decisions recorded there with
 ## Layout
 
 - `packages/core` (`@chisme/core`): git checkpoint reading, the SQLite index, embeddings, hybrid search.
-- `apps/cli` (`chisme`): the command-line tool. Stage 1 focus.
-- `apps/server` (`@chisme/server`): HTTP API over core. Stage 2, stub for now.
-- `apps/web` (`@chisme/web`): browser UI. Stage 2, stub for now.
+- `apps/cli` (`chisme`): the command-line tool. Stage 1, complete.
+- `apps/server` (`@chisme/server`): read-only HTTP API over core (Stage 2). Routes implemented.
+- `apps/web` (`@chisme/web`): browser UI. Stage 2, placeholder (not built yet).
 
 ## Commands
 
@@ -27,6 +27,7 @@ and the file-by-file build plan. Do not relitigate decisions recorded there with
 - `bun run chisme -- <args>`: run the CLI in dev (e.g. `bun run chisme -- search "auth"`).
 - `bun run build:cli`: compile the single `chisme` binary to `./chisme`.
 - `bun run install:cli`: build then install the binary to `~/.local/bin` (override `CHISME_INSTALL_DIR`).
+- `bun run dev:server`: run the Stage 2 HTTP API on http://localhost:4123.
 - `bun run --filter '*' typecheck`: typecheck every workspace.
 
 ## Conventions
@@ -45,8 +46,7 @@ Applies to code comments, docs, commit messages, PR descriptions, and chat respo
 - Never add a `Co-Authored-By: Claude ...` trailer, a "Generated with Claude Code" line, or any
   other Claude or Anthropic attribution to commits or pull requests. Commits are authored by the
   user only.
-- Commit or push only when the user asks. This project directory may not be a git repo yet; do not
-  run `git init` without asking.
+- Commit or push only when the user asks. Work is trunk-based: commits land directly on `main`.
 
 ### Engineering
 
@@ -55,3 +55,5 @@ Applies to code comments, docs, commit messages, PR descriptions, and chat respo
 - chisme is read-only over git checkpoint data. It never writes to the `entire/checkpoints/v1`
   branch and never installs agent hooks.
 - Keep writes to the index idempotent so re-syncs are safe.
+- The compiled binary embeds the sqlite-vec extension and the onnxruntime-web WASM, and stubs the
+  native `onnxruntime-node` / `sharp` imports at build time. Read PLAN.md Section 11 before changing `build.ts`.
