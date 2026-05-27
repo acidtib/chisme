@@ -12,9 +12,22 @@
  * we then steer transformers onto its bundled onnxruntime-web (WASM) backend. The
  * two backends produce effectively identical vectors (cosine ~0.993).
  */
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { modelCacheDir } from "../config/paths.ts";
 
 const MODEL = "Xenova/all-MiniLM-L6-v2";
+
+/** A transformers.js model-loading progress event (passed to `progress_callback`). */
+export interface ModelProgress {
+  status: string;
+  name?: string;
+  file?: string;
+  /** 0..100 for the current file, present on `status: "progress"`. */
+  progress?: number;
+  loaded?: number;
+  total?: number;
+}
 
 interface EmbedderConfig {
   /** Force the WASM backend even under a Node-like runtime (for compiled binaries). */
@@ -23,6 +36,8 @@ interface EmbedderConfig {
   wasmPaths?: { wasm: string; mjs: string };
   /** Override the model cache directory. */
   cacheDir?: string;
+  /** Called with transformers.js load events; fires only when files are downloaded. */
+  onModelProgress?: (p: ModelProgress) => void;
 }
 
 type FeatureExtractor = (text: string, opts: Record<string, unknown>) => Promise<{ data: Float32Array }>;
@@ -70,7 +85,8 @@ async function init(): Promise<void> {
         wasm.numThreads = 1;
       }
 
-      pipe = (await transformers.pipeline("feature-extraction", MODEL)) as unknown as FeatureExtractor;
+      const options = config.onModelProgress ? { progress_callback: config.onModelProgress } : undefined;
+      pipe = (await transformers.pipeline("feature-extraction", MODEL, options)) as unknown as FeatureExtractor;
       available = true;
     } catch {
       pipe = null;
@@ -88,6 +104,29 @@ export async function isEmbedderInstalled(): Promise<boolean> {
   try {
     await import("@huggingface/transformers");
     return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Filesystem directory transformers.js caches this model's files under. */
+function modelDir(): string {
+  return join(config.cacheDir ?? modelCacheDir(), ...MODEL.split("/"));
+}
+
+/**
+ * Whether the embedding model is already downloaded into the cache, checked from
+ * disk without loading it (so it never triggers a download). Lets callers show
+ * download feedback only on the first run. Conservative: true only when an .onnx
+ * weight file is present, so an interrupted download still counts as not installed.
+ */
+export async function isModelInstalled(): Promise<boolean> {
+  try {
+    const dir = modelDir();
+    if (!existsSync(dir)) return false;
+    const onnxDir = join(dir, "onnx");
+    const files = readdirSync(existsSync(onnxDir) ? onnxDir : dir);
+    return files.some((f) => f.endsWith(".onnx"));
   } catch {
     return false;
   }

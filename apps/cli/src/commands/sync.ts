@@ -1,11 +1,35 @@
 /**
  * `chisme sync` - fetch remote checkpoints and (re)index this repo.
  */
-import { syncRepo } from "@chisme/core";
+import { syncRepo, configureEmbedder, isModelInstalled, type ModelProgress } from "@chisme/core";
 import { parseSyncArgs } from "../cli/args.ts";
 import { openDb } from "../cli/db.ts";
 import { setupEmbedder } from "../runtime/embedder.ts";
 import { colors } from "../cli/colors.ts";
+
+/**
+ * Reports the embedding model download to stderr. Wired only on the first index
+ * (model not yet cached), so it prints nothing on subsequent runs. transformers.js
+ * fires `progress` events only while fetching, so a cached read stays silent too.
+ */
+function makeModelDownloadReporter(isTty: boolean): (p: ModelProgress) => void {
+  let started = false;
+  return (p) => {
+    if (p.status === "progress" && typeof p.progress === "number") {
+      if (!started) {
+        started = true;
+        if (!isTty) process.stderr.write("Downloading embedding model (first run, ~30-90 MB)...\n");
+      }
+      if (isTty) {
+        const pct = Math.min(100, Math.max(0, Math.round(p.progress)));
+        process.stderr.write(`\r\x1b[K  downloading embedding model ${pct}%`);
+      }
+    } else if (p.status === "ready" && started) {
+      started = false;
+      if (isTty) process.stderr.write("\r\x1b[K");
+    }
+  };
+}
 
 const HELP = `chisme sync [flags]
 
@@ -27,6 +51,12 @@ export async function cmdSync(argv: string[]): Promise<void> {
   const isTty = Boolean(process.stderr.isTTY);
   const { db, vecAvailable, close } = await openDb();
   try {
+    // Show model-download feedback only on the first index: when vector storage is
+    // available (so the embedder will run) and the model is not cached yet.
+    if (vecAvailable && !(await isModelInstalled())) {
+      configureEmbedder({ onModelProgress: makeModelDownloadReporter(isTty) });
+    }
+
     const result = await syncRepo({
       cwd: process.cwd(),
       db,

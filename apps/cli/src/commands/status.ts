@@ -2,8 +2,9 @@
  * `chisme status` - index location, contents, and search capabilities.
  *
  * Reports without triggering side effects: capability checks use an in-memory db
- * and only probe whether the embedder package is installed (no model download).
- * The index file is opened only if it already exists, so status never creates it.
+ * and probe whether the embedder package and its model are present (both filesystem
+ * checks, no model download). The index file is opened only if it already exists,
+ * so status never creates it.
  */
 import { Database } from "bun:sqlite";
 import { existsSync } from "node:fs";
@@ -13,6 +14,7 @@ import {
   allRepos,
   countCheckpoints,
   isEmbedderInstalled,
+  isModelInstalled,
   openDatabase,
 } from "@chisme/core";
 import { loadVecExtension } from "../runtime/vec.ts";
@@ -23,6 +25,7 @@ export async function cmdStatus(version: string): Promise<void> {
   const vec = await loadVecExtension(probe);
   probe.close();
   const embedderInstalled = await isEmbedderInstalled();
+  const modelCached = embedderInstalled ? await isModelInstalled() : false;
 
   const dbPath = databasePath();
   const present = existsSync(dbPath);
@@ -35,9 +38,10 @@ export async function cmdStatus(version: string): Promise<void> {
   console.log(
     `semantic storage (vec): ${vec.available ? colors.green(`available (sqlite-vec ${vec.version})`) : colors.yellow("unavailable")}`,
   );
-  console.log(
-    `embedder (transformers): ${embedderInstalled ? colors.green("installed") : colors.yellow("not installed")} ${colors.dim("(model downloads on first index)")}`,
-  );
+  const embedderState = embedderInstalled
+    ? `${colors.green("installed")} ${colors.dim(modelCached ? "(model ready)" : "(model downloads on first index)")}`
+    : colors.yellow("not installed");
+  console.log(`embedder (transformers): ${embedderState}`);
 
   if (!present) {
     console.log("");
