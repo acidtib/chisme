@@ -64,11 +64,10 @@ describe("parseSyncArgs", () => {
     expect(a.full).toBe(false);
     expect(a.remote).toBe("origin");
     expect(a.limit).toBeUndefined();
-    expect(a.timings).toBe(false);
   });
 
-  test("--timings enables the time breakdown", () => {
-    expect(parseSyncArgs(["--timings"]).timings).toBe(true);
+  test("still accepts --timings without erroring (now a no-op, always printed)", () => {
+    expect(() => parseSyncArgs(["--timings"])).not.toThrow();
   });
 
   test("reads flags and clamps a non-positive limit to undefined", () => {
