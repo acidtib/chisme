@@ -18,7 +18,8 @@ import {
   resolveCheckpointsRef,
 } from "../git/repo.ts";
 import {
-  readCheckpoint,
+  indexCheckpointBlobs,
+  readCheckpointsBatch,
   scanCheckpointIds,
   scanCheckpointIdsByRecency,
 } from "../git/checkpoints.ts";
@@ -189,38 +190,53 @@ export async function syncRepo(opts: SyncOptions): Promise<SyncResult> {
     newIds.length > 0 ? buildCheckpointCommitMap(root) : new Map<string, CommitInfo>();
   timings.commitMapMs = performance.now() - mark;
 
-  for (const id of newIds) {
-    try {
-      mark = performance.now();
-      const raw = readCheckpoint(root, ref, id);
-      timings.readMs += performance.now() - mark;
-      if (!raw) {
-        failed++;
-        continue;
-      }
+  // Index every checkpoint's blob shas once, then read each chunk through a single
+  // `git cat-file --batch` rather than several `git show` spawns per checkpoint
+  // (process spawn dominates indexing, especially on macOS). Chunked to bound memory.
+  mark = performance.now();
+  const blobIndex = newIds.length > 0 ? indexCheckpointBlobs(root, ref) : new Map();
+  timings.readMs += performance.now() - mark;
 
-      mark = performance.now();
-      const input = buildInput(root, repo.id, raw, commitMap.get(id) ?? null);
-      timings.buildMs += performance.now() - mark;
+  const CHUNK = 100;
+  let processed = 0;
+  for (let i = 0; i < newIds.length; i += CHUNK) {
+    const chunk = newIds.slice(i, i + CHUNK);
+    mark = performance.now();
+    const batch = readCheckpointsBatch(root, chunk, blobIndex);
+    timings.readMs += performance.now() - mark;
 
-      if (tryEmbed) {
-        mark = performance.now();
-        const vector = await embed(embedText(input));
-        timings.embedMs += performance.now() - mark;
-        if (vector) {
-          input.embedding = vector;
-          embedderUsed = true;
+    for (const id of chunk) {
+      try {
+        const raw = batch.get(id);
+        if (!raw) {
+          failed++;
+          continue;
         }
-      }
 
-      mark = performance.now();
-      upsertCheckpoint(opts.db, input, opts.vecAvailable);
-      timings.dbMs += performance.now() - mark;
-      synced++;
-    } catch {
-      failed++;
+        mark = performance.now();
+        const input = buildInput(root, repo.id, raw, commitMap.get(id) ?? null);
+        timings.buildMs += performance.now() - mark;
+
+        if (tryEmbed) {
+          mark = performance.now();
+          const vector = await embed(embedText(input));
+          timings.embedMs += performance.now() - mark;
+          if (vector) {
+            input.embedding = vector;
+            embedderUsed = true;
+          }
+        }
+
+        mark = performance.now();
+        upsertCheckpoint(opts.db, input, opts.vecAvailable);
+        timings.dbMs += performance.now() - mark;
+        synced++;
+      } catch {
+        failed++;
+      }
+      processed++;
+      opts.onProgress?.(processed, newIds.length);
     }
-    opts.onProgress?.(synced + failed, newIds.length);
   }
 
   setLastSync(opts.db, repo.id, new Date().toISOString());

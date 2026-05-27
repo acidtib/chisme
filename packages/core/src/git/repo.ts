@@ -161,6 +161,42 @@ export function readBlob(root: string, ref: string, path: string): string | null
   return r.ok ? r.stdout : null;
 }
 
+/**
+ * Reads many git objects in a single `git cat-file --batch` process, keyed by sha.
+ *
+ * Spawning one `git show` per blob is the dominant cost when indexing (a checkpoint
+ * needs several blobs, and process spawn is slow, especially on macOS). This feeds
+ * all shas to one long-lived git process and parses its binary batch protocol:
+ * for each input line, `<sha> <type> <size>\n`, then `<size>` content bytes, then a
+ * `\n`; a missing object yields `<sha> missing\n`. Content is decoded as UTF-8.
+ */
+export function catFileBatch(root: string, shas: string[]): Map<string, string> {
+  const out = new Map<string, string>();
+  if (shas.length === 0) return out;
+  const proc = Bun.spawnSync(["git", "-C", root, "cat-file", "--batch"], {
+    stdin: new TextEncoder().encode(`${shas.join("\n")}\n`),
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  if (proc.exitCode !== 0) return out;
+  const buf = proc.stdout;
+  const decoder = new TextDecoder();
+  let pos = 0;
+  while (pos < buf.length) {
+    const nl = buf.indexOf(0x0a, pos);
+    if (nl === -1) break;
+    const header = decoder.decode(buf.subarray(pos, nl));
+    pos = nl + 1;
+    const sp = header.lastIndexOf(" ");
+    const size = sp === -1 ? Number.NaN : Number(header.slice(sp + 1));
+    if (!Number.isFinite(size)) continue; // "<sha> missing" or unexpected line
+    const sha = header.slice(0, header.indexOf(" "));
+    out.set(sha, decoder.decode(buf.subarray(pos, pos + size)));
+    pos += size + 1; // skip content and its trailing newline
+  }
+  return out;
+}
+
 /** Reverse lookup: the commit whose message carries this checkpoint's trailer. */
 export function findCommitByCheckpointId(root: string, id: string): string | null {
   const r = git(root, ["log", "--all", "--grep", `Entire-Checkpoint: ${id}`, "--format=%H", "-1"]);

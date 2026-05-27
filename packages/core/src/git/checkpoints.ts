@@ -7,7 +7,7 @@
  * use absolute-style paths. Missing files are tolerated.
  */
 import type { CheckpointSummary, RawCheckpoint, RawSession, SessionMetadata } from "../types.ts";
-import { git, listTree, readBlob } from "./repo.ts";
+import { catFileBatch, git, listTree, readBlob } from "./repo.ts";
 
 /** Matches a checkpoint directory: a two-hex shard plus the rest of the id. */
 const CHECKPOINT_DIR = /^([0-9a-f]{2})\/([0-9a-f]+)$/;
@@ -98,4 +98,120 @@ export function readCheckpoint(root: string, ref: string, id: string): RawCheckp
   }
 
   return { id, path, summary, sessions };
+}
+
+interface SessionBlobs {
+  index: number;
+  metaSha: string | null;
+  transcriptSha: string | null;
+  promptSha: string | null;
+}
+
+interface CheckpointBlobs {
+  summarySha: string | null;
+  sessions: Map<number, SessionBlobs>;
+}
+
+/** Maps each checkpoint id to the blob shas of its files, for batch reading. */
+export type CheckpointBlobIndex = Map<string, CheckpointBlobs>;
+
+/** Top-level `<shard>/<rest>/metadata.json`. */
+const TOP_META = /^([0-9a-f]{2})\/([0-9a-f]+)\/metadata\.json$/;
+/** Per-session `<shard>/<rest>/<index>/(metadata.json|full.jsonl|prompt.txt)`. */
+const SESSION_FILE =
+  /^([0-9a-f]{2})\/([0-9a-f]+)\/(\d+)\/(metadata\.json|full\.jsonl|prompt\.txt)$/;
+
+/**
+ * Indexes every checkpoint's file shas in one recursive `ls-tree`, so a sync can
+ * then read all blobs through a single `git cat-file --batch` instead of several
+ * `git show` spawns per checkpoint (the dominant indexing cost, see syncRepo).
+ */
+export function indexCheckpointBlobs(root: string, ref: string): CheckpointBlobIndex {
+  const index: CheckpointBlobIndex = new Map();
+  const cpFor = (id: string): CheckpointBlobs => {
+    let cp = index.get(id);
+    if (!cp) {
+      cp = { summarySha: null, sessions: new Map() };
+      index.set(id, cp);
+    }
+    return cp;
+  };
+  const sessionFor = (cp: CheckpointBlobs, i: number): SessionBlobs => {
+    let s = cp.sessions.get(i);
+    if (!s) {
+      s = { index: i, metaSha: null, transcriptSha: null, promptSha: null };
+      cp.sessions.set(i, s);
+    }
+    return s;
+  };
+
+  for (const entry of listTree(root, ref, "", { recursive: true })) {
+    if (entry.type !== "blob") continue;
+    const top = entry.path.match(TOP_META);
+    if (top) {
+      cpFor(top[1]! + top[2]!).summarySha = entry.sha;
+      continue;
+    }
+    const sf = entry.path.match(SESSION_FILE);
+    if (!sf) continue;
+    const session = sessionFor(cpFor(sf[1]! + sf[2]!), Number(sf[3]));
+    if (sf[4] === "metadata.json") session.metaSha = entry.sha;
+    else if (sf[4] === "full.jsonl") session.transcriptSha = entry.sha;
+    else session.promptSha = entry.sha; // prompt.txt
+  }
+  return index;
+}
+
+/**
+ * Reads a batch of checkpoints from a prebuilt blob index in a single
+ * `git cat-file --batch`. Same shape and fallbacks as `readCheckpoint` (missing
+ * summary degrades to `{ checkpoint_id }`, missing session files to empty), but
+ * one git process for the whole batch instead of several per checkpoint.
+ */
+export function readCheckpointsBatch(
+  root: string,
+  ids: string[],
+  index: CheckpointBlobIndex,
+): Map<string, RawCheckpoint> {
+  const shas: string[] = [];
+  for (const id of ids) {
+    const cp = index.get(id);
+    if (!cp) continue;
+    if (cp.summarySha) shas.push(cp.summarySha);
+    for (const s of cp.sessions.values()) {
+      if (s.metaSha) shas.push(s.metaSha);
+      if (s.transcriptSha) shas.push(s.transcriptSha);
+      if (s.promptSha) shas.push(s.promptSha);
+    }
+  }
+  const blobs = catFileBatch(root, shas);
+  const parse = <T>(sha: string | null): T | null => {
+    if (!sha) return null;
+    const raw = blobs.get(sha);
+    if (raw == null) return null;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
+    }
+  };
+
+  const result = new Map<string, RawCheckpoint>();
+  for (const id of ids) {
+    const cp = index.get(id);
+    const summary =
+      parse<CheckpointSummary>(cp?.summarySha ?? null) ??
+      ({ checkpoint_id: id } as CheckpointSummary);
+    const sessions: RawSession[] = [];
+    if (cp) {
+      for (const s of [...cp.sessions.values()].sort((a, b) => a.index - b.index)) {
+        const metadata = parse<SessionMetadata>(s.metaSha) ?? {};
+        const transcriptJsonl = (s.transcriptSha && blobs.get(s.transcriptSha)) || "";
+        const prompt = ((s.promptSha && blobs.get(s.promptSha)) || "").trim();
+        sessions.push({ index: s.index, metadata, transcriptJsonl, prompt });
+      }
+    }
+    result.set(id, { id, path: checkpointPath(id), summary, sessions });
+  }
+  return result;
 }
