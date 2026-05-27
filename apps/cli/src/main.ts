@@ -9,6 +9,7 @@
 import { Database } from "bun:sqlite";
 import { isEmbedderInstalled } from "@chisme/core";
 import { loadVecExtension } from "./runtime/vec.ts";
+import { installCustomSqlite } from "./runtime/sqlite.ts";
 import { colors } from "./cli/colors.ts";
 import { cmdSearch } from "./commands/search.ts";
 import { cmdSync } from "./commands/sync.ts";
@@ -56,6 +57,11 @@ async function cmdVersion(): Promise<void> {
 const COMMANDS = new Set(["search", "index", "sync", "list", "status", "agent"]);
 
 async function main(): Promise<void> {
+  // macOS uses Apple's extension-less SQLite by default; redirect bun:sqlite to a
+  // vanilla one (embedded in the binary, or Homebrew in dev) so sqlite-vec can load.
+  // Must run before any Database opens. No-op on Linux and Windows.
+  await installCustomSqlite();
+
   const argv = process.argv.slice(2);
   const command = argv[0] ?? "help";
   const rest = argv.slice(1);

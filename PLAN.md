@@ -415,6 +415,7 @@ Results below. The validation scripts lived under `/tmp/chisme-validate` and can
 | Single binary embeddings via embedded `onnxruntime-web` WASM | PASS | The native `onnxruntime-node` / `sharp` addons cannot enter a `--compile` bundle, so a build plugin stubs them. transformers.js picks its backend from `process.release.name === 'node'`; override it (to e.g. `chisme-bun`) before importing so it uses its bundled `onnxruntime-web`. Embed `ort-wasm-simd-threaded.{wasm,mjs}` (platform-independent), extract at runtime, set `env.backends.onnx.wasm.wasmPaths` and `numThreads=1`. Confirmed: 384-dim vectors from a standalone binary in a clean dir; model still downloads on first run. |
 | WASM vs native embedding parity | PASS | Cosine similarity 0.993 between the native (onnxruntime-node) and WASM (onnxruntime-web) backends for the same input. Tiny FP differences do not change ranking. |
 | Multi-threaded WASM embedding in the binary | FAIL (do not retry) | `numThreads > 1` makes onnxruntime-web spawn a Web Worker thread pool that Bun terminates (`Worker has been terminated`); batching is slower (padding, no parallelism). A Bun worker pool (each worker its own pipeline) was built and works on linux (note: the worker must be a `--compile` entrypoint co-located with `main.ts`, and referenced as a bare `new Worker("./embed-worker.ts")`, since Bun resolves it relative to the main entry; the `new URL` form hangs). But it peaks at ~2x (K=2) then collapses from oversubscription, is slower than single-thread for normal-size indexes (pays 3 model loads at startup), only helps very large first indexes, and macOS/Windows worker support is unverified. Dropped: `numThreads=1`, single-thread inline. The dev/`bun install` path keeps the fast native multi-threaded backend. |
+| `sqlite-vec` loads under `bun:sqlite` on macOS by default | FAIL (fixed) | macOS ships Apple's system SQLite, which Bun links against for a ~50% perf win, and that build disables loadable extensions, so `db.loadExtension(vec0)` fails and macOS is keyword-only. This is an Apple limitation Bun inherits by default, not a hard Bun limit: Bun exposes `Database.setCustomSQLite(path)` to redirect to a different SQLite. Fix: compile a self-contained vanilla `libsqlite3.dylib` (FTS5 + extension support, depends only on libSystem) per arch in CI, embed it like `vec0`, and call `setCustomSQLite` before opening any DB. Dev macOS probes a Homebrew SQLite. Linux/Windows use Bun's own bundled SQLite, which already loads extensions, so they are untouched. Caught by the release smoke test, which asserts a semantic match per OS. |
 
 Two gotchas worth calling out for the implementer:
 
@@ -440,6 +441,11 @@ plan is tiered.
 - Keyword search (FTS5, built into `bun:sqlite`).
 - Vector storage and KNN (`sqlite-vec`), by embedding the platform `vec0` extension as a file asset and
   extracting it to the cache dir on first run, then `loadExtension` (Section 10).
+- On macOS, a self-contained vanilla `libsqlite3.dylib` is embedded too. Apple's system SQLite (which
+  Bun uses by default) disables loadable extensions, so `sqlite-vec` cannot load there. CI compiles the
+  vanilla SQLite per arch (FTS5 + extension support, libSystem-only deps), `build.ts` embeds it, and
+  `src/runtime/sqlite.ts` calls `Database.setCustomSQLite()` on it before any DB opens (Section 10).
+  Linux and Windows use Bun's own bundled SQLite and need no custom library.
 
 ### The embeddings runtime in a pure binary (RESOLVED, option 1 shipped)
 Semantic search needs an embedder at both index time and query time. The embedder
@@ -476,8 +482,10 @@ The workflow runs on a `v*` tag (and `workflow_dispatch`). Each matrix job:
 - runner to asset: `ubuntu-latest` to `chisme-linux-x64`, `ubuntu-24.04-arm` to `chisme-linux-arm64`,
   `macos-15-intel` to `chisme-darwin-x64`, `macos-15` to `chisme-darwin-arm64`, `windows-latest` to
   `chisme-windows-x64.exe`. (The retired `macos-13` Intel runner was replaced by `macos-15-intel`.)
-- `bun install --frozen-lockfile` (installs that host's native `sqlite-vec`), then `bun run build:cli`
-  (native build; `build.ts` embeds the extension and injects `BUILD_VERSION`), then a smoke test: the
+- `bun install --frozen-lockfile` (installs that host's native `sqlite-vec`); on macOS runners a step
+  compiles the vanilla `libsqlite3.dylib` from the SQLite amalgamation and exports its path in
+  `CHISME_MACOS_SQLITE_DYLIB`; then `bun run build:cli` (native build; `build.ts` embeds the extension,
+  the macOS SQLite when present, and injects `BUILD_VERSION`), then a smoke test: the
   binary runs `version`, indexes this repo's newest few checkpoints (`chisme index --limit 5`, which
   fetches `entire/checkpoints/v1` from origin), and `chisme search --json` must return a `both` or
   `semantic` match, so a broken embedded embedder fails the release instead of shipping. The `--limit`
@@ -574,10 +582,11 @@ Status keys: DONE means written, TODO means not started.
   extension), and a `typecheck` script.
 - [DONE] `tsconfig.json`.
 - [DONE] `build.ts`: `Bun.build` compile. Native build to `./chisme`, `--all` cross-compile to `./dist`
-  with `SHA256SUMS`. Embeds the matching `vec0` extension and the platform-independent
-  `onnxruntime-web` WASM (temporarily rewrites `src/embedded/vec-extension.ts` and
-  `embedder-assets.ts`), stubs the native `onnxruntime-node` / `sharp` imports via a build plugin, and
-  injects `BUILD_VERSION`. See Section 11.
+  with `SHA256SUMS`. Embeds the matching `vec0` extension, the platform-independent `onnxruntime-web`
+  WASM, and (for darwin targets, when `CHISME_MACOS_SQLITE_DYLIB` is set) a vanilla `libsqlite3`
+  (temporarily rewrites `src/embedded/vec-extension.ts`, `embedder-assets.ts`, and `sqlite-lib.ts`),
+  stubs the native `onnxruntime-node` / `sharp` imports via a build plugin, and injects
+  `BUILD_VERSION`. See Section 11.
 - [DONE] `src/main.ts`: entry and dispatch. All commands wired to core: `version`, `help`
   (plus `help <command>`), `status`, `agent install`, `search`, `index`/`sync`, and `list`.
 - [DONE] `src/agent/chisme-search.{claude.md,codex.toml,gemini.md,cursor.md,pi.md}`: the Section 9
@@ -587,6 +596,12 @@ Status keys: DONE means written, TODO means not started.
   binary and its mjs loader (null in dev; build.ts rewrites it during compile).
 - [DONE] `src/runtime/vec.ts`: loads `sqlite-vec` (embedded extract first, then node_modules), never
   throws, reports availability.
+- [DONE] `src/embedded/sqlite-lib.ts`: build-time pointer to the embedded macOS `libsqlite3` (null in
+  dev and on non-darwin targets; build.ts rewrites it during darwin compiles).
+- [DONE] `src/runtime/sqlite.ts`: `installCustomSqlite()` redirects `bun:sqlite` to an
+  extension-capable SQLite on macOS (embedded dylib in the binary, or a Homebrew SQLite in dev) via
+  `Database.setCustomSQLite()` before any DB opens. No-op on Linux/Windows; never throws. Called first
+  in `main()`.
 - [DONE] `src/runtime/embedder.ts`: `setupEmbedder()` extracts the embedded WASM and calls
   `configureEmbedder` so a compiled binary embeds on the WASM backend; a no-op in dev. Called by the
   `search` and `index`/`sync` commands.
@@ -699,6 +714,11 @@ real.
 - DONE: the per-OS release smoke test asserts a `both`/`semantic` match (indexes this repo's newest few
   checkpoints via `index --limit 5`, then searches), so a broken embedded embedder fails the release.
   `index --limit N` (newest N, recency from `git log`) keeps the test fast as history grows.
+- DONE: macOS semantic search. The first strict smoke test caught that macOS shipped keyword-only,
+  because Apple's system SQLite (Bun's default there) disables loadable extensions, so `sqlite-vec`
+  could not load. Fix: CI compiles a vanilla `libsqlite3.dylib` per arch, `build.ts` embeds it, and the
+  binary calls `Database.setCustomSQLite()` before any DB opens. Linux/Windows are untouched. See the
+  new row in Section 10 and `src/runtime/sqlite.ts`. (Verified by the macOS release jobs.)
 - DONE (investigated, not pursued): faster binary indexing via threading. Multi-threaded WASM is
   impossible under Bun and a worker pool is not worth it (Section 10). `numThreads=1`, single-thread.
 - TODO: the web UI on top of the server routes. Optional later: a `-baseline` / musl matrix.

@@ -40,6 +40,35 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Apple's system SQLite (which Bun uses on macOS) is built without loadable
+      # extensions, so sqlite-vec can't load and semantic search degrades to
+      # keyword-only. Compile a self-contained vanilla SQLite (FTS5 + extension
+      # support, depends only on libSystem) for this runner's arch; build.ts embeds
+      # it and the binary redirects bun:sqlite to it via Database.setCustomSQLite().
+      - name: Build vanilla SQLite for macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ver=3460100
+          curl -fsSL "https://www.sqlite.org/2024/sqlite-amalgamation-${ver}.zip" -o sqlite.zip
+          unzip -q sqlite.zip
+          cc -O2 -dynamiclib \
+            -DSQLITE_ENABLE_FTS5 \
+            -DSQLITE_ENABLE_FTS3 \
+            -DSQLITE_ENABLE_FTS4 \
+            -DSQLITE_ENABLE_RTREE \
+            -DSQLITE_ENABLE_COLUMN_METADATA \
+            -DSQLITE_ENABLE_DESERIALIZE \
+            -DSQLITE_ENABLE_MATH_FUNCTIONS \
+            -DSQLITE_THREADSAFE=1 \
+            -install_name @rpath/libsqlite3.dylib \
+            "sqlite-amalgamation-${ver}/sqlite3.c" \
+            -o "$GITHUB_WORKSPACE/libsqlite3.dylib"
+          file "$GITHUB_WORKSPACE/libsqlite3.dylib"
+          otool -L "$GITHUB_WORKSPACE/libsqlite3.dylib"
+          echo "CHISME_MACOS_SQLITE_DYLIB=$GITHUB_WORKSPACE/libsqlite3.dylib" >> "$GITHUB_ENV"
+
       - name: Build native binary
         run: bun run build:cli
 
