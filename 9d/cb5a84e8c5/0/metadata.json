@@ -1,0 +1,72 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "9dcb5a84e8c5",
+  "session_id": "a33d964d-936f-46c6-a91a-93a252f04ae5",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-27T06:36:10.817392421Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "apps/cli/src/commands/agent.ts"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "73a001f530db",
+  "token_usage": {
+    "input_tokens": 24833,
+    "cache_creation_tokens": 2091367,
+    "cache_read_tokens": 133571112,
+    "output_tokens": 468320,
+    "api_call_count": 434
+  },
+  "session_metrics": {
+    "turn_count": 21
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-27T06:36:10.710118869Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 221,
+    "human_modified": 72,
+    "human_removed": 0,
+    "total_committed": 221,
+    "total_lines_changed": 331,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 235,
+      "user_lines_removed": 59,
+      "agent_lines_added": 16,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.json": 3,
+        "PLAN.md": 21,
+        "README.md": 7,
+        "apps/cli/src/agent/chisme-search.claude.md": 29,
+        "apps/cli/src/agent/chisme-search.codex.toml": 23,
+        "apps/cli/src/agent/chisme-search.cursor.md": 21,
+        "apps/cli/src/agent/chisme-search.gemini.md": 28,
+        "apps/cli/src/agent/chisme-search.pi.txt": 31,
+        "apps/cli/src/commands/agent.ts": 64,
+        "apps/cli/src/embed.d.ts": 8
+      },
+      "user_removed_per_file": {
+        ".claude/settings.json": 4,
+        "PLAN.md": 6,
+        "README.md": 3,
+        "apps/cli/src/agent/chisme-search.md": 29,
+        "apps/cli/src/commands/agent.ts": 17
+      }
+    }
+  ]
+}
