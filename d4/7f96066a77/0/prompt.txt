@@ -1,0 +1,37 @@
+lets first focus on  The optional onnxruntime-web embedder spike to enable semantic search inside the pure compiled binary (the one open item from Section 11).
+
+---
+
+lets hold of from that right now, i want to test, so now we are at the stage where i can test the chisme search and claude angent ?
+
+---
+
+ok i releoaded claude the agent should show up now, also where in the linux and mac do we store the chisme files and db
+
+---
+
+yes lets follow the mac convention
+
+---
+
+cool, i noticed that in the copy it says like chisme is a open source search and web for entire sessions, lets refrase that to say like chisme is an entire compaiun cli
+
+---
+
+how do i build and install localy
+
+---
+
+yes add a a convenience script (e.g. bun run install:cli
+
+---
+
+i had commited the agent
+
+---
+
+ok whats left from the plan
+
+---
+
+ok i made a note on the optopnal polish stuff so we can come back it later, lets work on the server routes please update the plan, worko n the routes and commit them, we wil ltalk baout the ui after
