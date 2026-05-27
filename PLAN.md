@@ -49,7 +49,7 @@ These were decided with the user. Do not relitigate without asking.
 | Packages | `packages/core` = `@chisme/core`; `apps/cli` = the `chisme` binary; `apps/server` = `@chisme/server` (Stage 2 stub); `apps/web` = `@chisme/web` (Stage 2 stub). |
 | Search ranking | Hybrid: SQLite FTS5 keyword plus `sqlite-vec` semantic, fused. Must degrade gracefully to keyword-only if the vec extension or embedding model is unavailable. |
 | Embeddings | `@huggingface/transformers` (transformers.js) running locally, model `Xenova/all-MiniLM-L6-v2` (384-dim). No API key, no daemon. Downloads the model once and caches it. |
-| Index location | One global multi-repo SQLite DB in the XDG data dir (`~/.local/share/chisme/chisme.db`). Every checkpoint is tagged with its `owner/repo` slug. |
+| Index location | One global multi-repo SQLite DB in the OS-native data dir: `~/Library/Application Support/chisme/chisme.db` (macOS), `%APPDATA%\chisme\chisme.db` (Windows), `~/.local/share/chisme/chisme.db` (Linux/XDG). `CHISME_DATA_DIR` overrides. Every checkpoint is tagged with its `owner/repo` slug. |
 | Team sync | `index` / `sync` must `git fetch` the remote `entire/checkpoints/v1` first, so it picks up teammates' pushed checkpoints, then index incrementally. |
 | `--repo` semantics | bare `search` = current repo (from cwd's git remote); `--repo owner/repo` = that repo; `--repo *` = all indexed repos. Local analogue of Entire's "all accessible repos". |
 | Stage 1 commands | `search`, `index` / `sync`, `status`, `list`, `agent install`. |
@@ -161,8 +161,9 @@ the text query as match-all and rely on filters plus recency.
 
 ## 5. SQLite schema (global multi-repo index)
 
-DB file: `databasePath()`, which is `~/.local/share/chisme/chisme.db` (see
-`packages/core/src/config/paths.ts`, already written). Open with `bun:sqlite`; set
+DB file: `databasePath()`, the OS-native data dir per `packages/core/src/config/paths.ts`
+(macOS `~/Library/Application Support/chisme`, Windows `%APPDATA%\chisme`, Linux
+`~/.local/share/chisme`). Open with `bun:sqlite`; set
 `PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON`. FTS5 is built into Bun's SQLite (no extension
 needed; validated). `sqlite-vec` is a loadable extension; load it via `db.loadExtension(...)` inside
 try/catch. If it throws, set `vecAvailable=false` and run keyword-only. See Section 10 for the
@@ -507,7 +508,8 @@ Status keys: DONE means written, TODO means not started.
 - [DONE] `package.json`: deps `@huggingface/transformers@^4.2.0`, `sqlite-vec@^0.1.9`.
 - [DONE] `tsconfig.json`.
 - [DONE] `src/types.ts`: data model.
-- [DONE] `src/config/paths.ts`: XDG data dir, `databasePath()`, `modelCacheDir()`, `ensureDataDir()`.
+- [DONE] `src/config/paths.ts`: OS-native data dir (macOS Application Support, Windows APPDATA, Linux
+  XDG), `databasePath()`, `modelCacheDir()` (macOS Caches, else XDG cache), `ensureDataDir()`.
 - [DONE] `src/git/repo.ts`: git CLI wrapper. `git` exec, `gitRoot`, `remoteUrl`, `slugFromRemoteUrl`
   plus `repoSlug` (with `local/<dirname>` fallback), `refExists`, `fetchCheckpoints`,
   `resolveCheckpointsRef`, `listTree(ref,path)`, `readBlob(ref,path)`, `findCommitByCheckpointId`,
