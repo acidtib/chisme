@@ -1,0 +1,1 @@
+lets first focus on  The optional onnxruntime-web embedder spike to enable semantic search inside the pure compiled binary (the one open item from Section 11).
