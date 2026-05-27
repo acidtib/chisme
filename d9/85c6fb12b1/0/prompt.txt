@@ -1,0 +1,15 @@
+<task-notification>
+<task-id>bctrqazsr</task-id>
+<tool-use-id>toolu_01Na2Fnsmby4ugaW5J1HtWs7</tool-use-id>
+<output-file>/tmp/claude-1000/-home-acidtib-Code-entire-chisme/5aab98c1-e5d2-47a1-8b01-81907f2c0e5b/tasks/bctrqazsr.output</output-file>
+<status>completed</status>
+<summary>Background command "Watch the v0.2.4 release run" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+that fixed it
+
+---
+
+in the sync command lets make the --timings defualt not needed to be passed to the param
