@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "f6e36231f9e7",
+  "session_id": "a33d964d-936f-46c6-a91a-93a252f04ae5",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-27T01:48:56.699972138Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "PLAN.md",
+    "apps/cli/build.ts",
+    "apps/cli/src/cli/args.ts",
+    "apps/cli/src/cli/colors.ts",
+    "apps/cli/src/cli/db.ts",
+    "apps/cli/src/cli/output.ts",
+    "apps/cli/src/commands/agent.ts",
+    "apps/cli/src/commands/list.ts",
+    "apps/cli/src/commands/search.ts",
+    "apps/cli/src/commands/status.ts",
+    "apps/cli/src/commands/sync.ts",
+    "apps/cli/src/main.ts"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "0aeb2ddf8e87",
+  "token_usage": {
+    "input_tokens": 4655,
+    "cache_creation_tokens": 135728,
+    "cache_read_tokens": 7639563,
+    "output_tokens": 88285,
+    "api_call_count": 80
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-27T01:48:56.675983601Z",
+    "agent_lines": 625,
+    "agent_removed": 96,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 625,
+    "total_lines_changed": 721,
+    "agent_percentage": 100,
+    "metric_version": 2
+  }
+}
