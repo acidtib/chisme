@@ -434,26 +434,33 @@ an embedder is present, otherwise keyword-only), and track the WASM embedder spi
 task that unlocks semantic in the pure binary. The full hybrid experience always works via the
 `bun install` developer and team path.
 
-### Build matrix (CI, on tag)
-Cross-compile every target from one runner with `bun build --compile`:
-```
-bun build --compile \
-  --target=<bun-linux-x64|bun-linux-arm64|bun-linux-x64-musl|bun-linux-arm64-musl|bun-darwin-x64|bun-darwin-arm64|bun-windows-x64> \
-  --minify --bytecode --sourcemap \
-  --define BUILD_VERSION='"x.y.z"' \
-  apps/cli/src/main.ts \
-  --outfile dist/chisme-<target>
-```
-Per target, embed the matching platform `vec0` extension. sqlite-vec publishes per-platform packages
-(`sqlite-vec-linux-x64`, `sqlite-vec-darwin-arm64`, `sqlite-vec-windows-x64`, and so on); the build
-script selects the artifact for the target being built and embeds it with
-`with { type: "file" }`. Also embed the agent template (`chisme-search.md`). Use `--define
-BUILD_VERSION` for `chisme version`. Note the AVX2 caveat from Bun: offer `-baseline` variants for old
-x64 CPUs if users hit "Illegal instruction".
+### Build matrix (per-OS, on tag): `.github/workflows/release.yml`
 
-Outputs to upload to GitHub Releases: `chisme-linux-x64`, `chisme-linux-arm64`,
-`chisme-linux-x64-musl`, `chisme-darwin-x64`, `chisme-darwin-arm64`, `chisme-windows-x64.exe`, plus a
-`SHA256SUMS` file.
+Decision: build each target on its own native runner, not by cross-compiling from one runner. The
+reason is the embedded extension. `sqlite-vec` ships as per-platform npm packages that only install on
+a matching host (their `os` and `cpu` fields), and `build.ts` embeds that native extension into the
+binary so semantic search works standalone. A single cross-compiling runner would only have its own
+platform's extension, so every other target would come out keyword-only. Native runners give every
+binary embedded semantic search.
+
+The workflow runs on a `v*` tag (and `workflow_dispatch`). Each matrix job:
+- runner to asset: `ubuntu-latest` to `chisme-linux-x64`, `ubuntu-24.04-arm` to `chisme-linux-arm64`,
+  `macos-13` to `chisme-darwin-x64`, `macos-14` to `chisme-darwin-arm64`, `windows-latest` to
+  `chisme-windows-x64.exe`.
+- `bun install --frozen-lockfile` (installs that host's native `sqlite-vec`), then `bun run build:cli`
+  (native build; `build.ts` embeds the extension and injects `BUILD_VERSION`), then a standalone smoke
+  test (`chisme version` from a temp dir).
+- uploads the binary as an artifact.
+
+A final `release` job downloads all artifacts, writes `SHA256SUMS` (`sha256sum chisme-*`), and
+publishes a GitHub Release with the binaries plus `SHA256SUMS` (consumed by `install.sh`).
+
+Notes:
+- musl (Alpine) and the AVX2 `-baseline` x64 variants are not in the matrix yet. Add later: musl needs
+  musl runners or containers, `-baseline` needs the Bun `*-baseline` targets for users who hit
+  "Illegal instruction" on old CPUs.
+- `build.ts --all` still cross-compiles all targets locally for convenience, but non-native targets
+  there are keyword-only (missing their extension). Releases use the per-OS matrix so they are not.
 
 ### install.sh (hosted, mirrors Entire's flow)
 A POSIX `sh` script that:
@@ -481,6 +488,9 @@ Status keys: DONE means written, TODO means not started.
 - [DONE] `tsconfig.base.json`: strict ESNext bundler config, `types: ["bun"]`.
 - [DONE] `.gitignore`.
 - [DONE] `CLAUDE.md`: points here; encodes the writing and git rules.
+- [DONE] `bin/install.sh`: POSIX `curl | sh` installer over GitHub Releases (Section 11).
+- [DONE] `.github/workflows/release.yml`: per-OS matrix that builds, smoke-tests, and publishes the
+  binaries plus `SHA256SUMS` on a `v*` tag (Section 11).
 - [TODO] `README.md`: user-facing intro, install (`curl | bash`), usage.
 - [TODO] `LICENSE`: MIT (package.json declares MIT).
 
@@ -510,23 +520,30 @@ Status keys: DONE means written, TODO means not started.
 - [TODO] `src/search/search.ts`: the Section 7 flow. `search(query, opts)` to `SearchResponse` (schema
   Section 4).
 - [TODO] `src/search/fts.ts`: sanitize query to a safe FTS match string; bm25 query helper.
-- [TODO] `src/index.ts`: barrel re-exports.
+- [DONE] `src/index.ts`: barrel re-exports (currently types plus config paths).
 
 ### `apps/cli` (the `chisme` binary)
-- [TODO] `package.json`: `name:"chisme"`, `bin`, dep `@chisme/core` (workspace `*`), script `typecheck`.
-  For release builds, add per-platform `sqlite-vec-*` packages as optional or dev deps so the matrix
-  can embed each target's extension.
-- [TODO] `tsconfig.json`.
-- [TODO] `build.ts`: `Bun.build` with `compile`, cross-compile targets, embed the matching `vec0`
-  extension and the agent template, `--define BUILD_VERSION`. See Section 11.
-- [TODO] `src/main.ts`: shebang `#!/usr/bin/env bun`, parse argv, dispatch, global help and version.
-- [TODO] `src/cli/args.ts`: `util.parseArgs` wrappers plus the inline-filter parser.
+- [DONE] `package.json`: `name:"chisme"`, `bin`, dep `@chisme/core` (workspace `*`), the per-platform
+  `sqlite-vec-*` packages as `optionalDependencies` (so the release matrix embeds each target's
+  extension), and a `typecheck` script.
+- [DONE] `tsconfig.json`.
+- [DONE] `build.ts`: `Bun.build` compile. Native build to `./chisme`, `--all` cross-compile to `./dist`
+  with `SHA256SUMS`. Embeds the matching `vec0` extension (temporarily rewrites
+  `src/embedded/vec-extension.ts`) and injects `BUILD_VERSION`. See Section 11.
+- [DONE] `src/main.ts`: entry and dispatch. `version`, `help`, `status`, and `agent install` work;
+  `search`/`index`/`sync`/`list` are stubs that exit non-zero pending core.
+- [DONE] `src/agent/chisme-search.md`: the Section 9 template (embedded via `with { type: "file" }`,
+  written by `agent install`).
+- [DONE] `src/embedded/vec-extension.ts`: build-time pointer to the embedded extension (null in dev).
+- [DONE] `src/runtime/vec.ts`: loads `sqlite-vec` (embedded extract first, then node_modules), never
+  throws, reports availability.
+- [DONE] `src/embed.d.ts`: module declarations for `*.md` and `*.bin` file imports.
+- [TODO] `src/cli/args.ts`: `util.parseArgs` wrappers plus the inline-filter parser (dispatch in
+  `main.ts` is minimal for now; factor this out as the command set grows).
 - [TODO] `src/cli/colors.ts`: tiny ANSI helper (respect `NO_COLOR` and TTY).
 - [TODO] `src/cli/output.ts`: human table and json printers; TTY detection for auto-json.
-- [TODO] `src/commands/search.ts`, `sync.ts` (registered as both `index` and `sync`; avoid naming the
-  file `index.ts`), `status.ts`, `list.ts`, `agent.ts`, `help.ts`.
-- [TODO] `src/agent/chisme-search.md`: the Section 9 template (embedded as a file asset and written by
-  `agent install`).
+- [TODO] `src/commands/search.ts`, `sync.ts` (registered as both `index` and `sync`), `list.ts`, and
+  the real implementations behind the current `status` and `agent` skeletons. Wire these to core.
 
 ### `apps/server` (`@chisme/server`), Stage 2 stub
 - [TODO] `package.json` (dep `@chisme/core`), `src/main.ts` = minimal `Bun.serve` with `/api/health`
@@ -601,10 +618,13 @@ real.
 
 ## 16. Current status
 
-- DONE: root workspace, `packages/core` package and tsconfig, `core/src/types.ts`,
-  `core/src/config/paths.ts`, `CLAUDE.md`, this plan.
-- TODO: everything else in Section 12. Suggested order: `core/git`, then `core/parser`, then
-  `core/db`, then `core/embeddings`, then `core/index` (sync), then `core/search`, then `cli`
-  commands, then verify on a real repo, then `server` and `web` stubs, then `README.md`, `LICENSE`,
-  and the release matrix plus `install.sh`.
+- DONE: monorepo scaffold; `@chisme/core` types, config paths, and barrel; the `chisme` CLI skeleton
+  (`version`/`help`/`status`/`agent install` working, other commands stubbed); `build.ts` single-binary
+  build with embedded `sqlite-vec` (validated standalone); `bin/install.sh`; the per-OS release
+  workflow `.github/workflows/release.yml`; `CLAUDE.md`; this plan.
+- TODO: the core engine, in order: `core/git` (repo plus checkpoints), `core/parser`, `core/db`
+  (database, schema, repos, checkpoints), `core/embeddings`, `core/index` (sync), `core/search`
+  (plus fts). Then wire the CLI `search`/`index`/`sync`/`list`/`status` commands to core and verify on
+  a real repo with `entire/checkpoints/v1`. Then the `server` and `web` stubs, `README.md`, `LICENSE`,
+  and the optional onnxruntime-web embedder spike (Section 11).
 ```
