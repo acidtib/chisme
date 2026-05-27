@@ -1,13 +1,12 @@
 # chisme
 
-Local, open-source search for your AI coding sessions. chisme indexes the agent
-session history that [Entire](https://entire.io) captures into a git branch and
-searches it on your machine. No entire.io account, no hosted service, no GitHub
-app authorization.
+An Entire companion CLI. chisme indexes the AI coding sessions that
+[Entire](https://entire.io) captures into a git branch and searches them on your
+machine. No entire.io account, no hosted service, no GitHub app authorization.
 
-> Status: early development (Stage 1). The CLI skeleton, the single-binary build,
-> and the release pipeline are in place. The indexing and search engine is being
-> built. See [PLAN.md](PLAN.md) for the roadmap.
+> Status: Stage 1 complete. Indexing and hybrid search work, including semantic
+> search inside the single binary. The server and web UI are Stage 2 stubs. See
+> [PLAN.md](PLAN.md) for the roadmap.
 
 ## Why
 

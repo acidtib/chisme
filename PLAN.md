@@ -9,10 +9,9 @@
 
 ## 1. What we are building (and why)
 
-chisme ("gossip" in Spanish) is a local, open-source search engine and viewer for AI coding sessions.
-It reads the session history that [Entire](https://entire.io) captures into a git branch and makes it
-searchable entirely on your machine. No entire.io account, no GitHub-app authorization, no hosted
-service.
+chisme ("gossip" in Spanish) is an Entire companion CLI. It reads the AI coding sessions that
+[Entire](https://entire.io) captures into a git branch and makes them searchable entirely on your
+machine. No entire.io account, no GitHub-app authorization, no hosted service.
 
 ### The problem with Entire we are solving
 

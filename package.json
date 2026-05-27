@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Local search and viewer for AI coding sessions captured as Entire checkpoints - no entire.io account required.",
+  "description": "An Entire companion CLI: search your captured AI coding sessions locally, no entire.io account required.",
   "license": "MIT",
   "workspaces": [
     "apps/*",

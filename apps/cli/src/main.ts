@@ -2,7 +2,7 @@
 /**
  * chisme CLI entry point and command dispatch.
  *
- * Local search and viewer for AI coding sessions captured as Entire checkpoints.
+ * An Entire companion CLI: local search over the AI coding sessions Entire captures.
  * Keyword search always works; semantic search is enabled when sqlite-vec and the
  * embedding model are available, and degrades gracefully otherwise.
  */
@@ -20,7 +20,7 @@ import { cmdAgent } from "./commands/agent.ts";
 declare const BUILD_VERSION: string | undefined;
 const VERSION = typeof BUILD_VERSION !== "undefined" ? BUILD_VERSION : "0.1.0-dev";
 
-const USAGE = `chisme ${VERSION} - local search for AI coding sessions
+const USAGE = `chisme ${VERSION} - an Entire companion CLI for local session search
 
 Usage: chisme <command> [options]
 

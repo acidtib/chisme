@@ -4,9 +4,9 @@ Guidance for Claude Code working in this repository.
 
 ## What this is
 
-chisme is a local, open-source search engine and viewer for AI coding sessions captured as Entire
-checkpoints. It indexes the `entire/checkpoints/v1` git branch into a local SQLite database and
-searches it on your machine, with no entire.io account and no hosted service.
+chisme is an Entire companion CLI. It indexes the AI coding sessions Entire captures on the
+`entire/checkpoints/v1` git branch into a local SQLite database and searches them on your machine,
+with no entire.io account and no hosted service.
 
 ## Start here
 
