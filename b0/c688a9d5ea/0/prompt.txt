@@ -260,3 +260,7 @@ indexed: 21 checkpoints across 1 repo(s)
 ---
 
 if its installed than why are you showing it to me  embedder (transformers): installed (model downloads on first index)
+
+---
+
+ok commit dont push yet
