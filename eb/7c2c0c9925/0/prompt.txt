@@ -1,0 +1,9 @@
+ok i set a git remote and the repo is private
+
+---
+
+i made it public
+
+---
+
+1
