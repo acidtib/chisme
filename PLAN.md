@@ -556,12 +556,14 @@ Status keys: DONE means written, TODO means not started.
   `status.ts`, and `agent.ts`. All wired to core.
 
 ### `apps/server` (`@chisme/server`), Stage 2 stub
-- [TODO] `package.json` (dep `@chisme/core`), `src/main.ts` = minimal `Bun.serve` with `/api/health`
-  and a TODO map of routes (checkpoints, search, and so on). Enough to run; real routes later.
+- [DONE] `package.json` (dep `@chisme/core`, `dev`/`start`/`typecheck` scripts), `tsconfig.json`,
+  `src/main.ts` = `Bun.serve` with a working `/api/health` (reports vec availability plus repo and
+  checkpoint counts from core) and a printed TODO map of routes; other `/api/*` return 501.
 
 ### `apps/web` (`@chisme/web`), Stage 2 stub
-- [TODO] `package.json` (React plus Vite), `index.html`, `src/main.tsx` placeholder,
-  `vite.config.ts`, `tsconfig.json`. Render a "chisme, Stage 2" placeholder.
+- [DONE] `package.json` (React plus Vite), `index.html`, `src/main.tsx`, `src/App.tsx` placeholder,
+  `vite.config.ts` (proxies `/api` to the server), `tsconfig.json`. Renders a Stage 2 placeholder;
+  `vite build` verified.
 
 ---
 
@@ -638,6 +640,9 @@ real.
   search (matchType `both`), match-all, FTS crash-input sanitization, `--full` reindex, and a standalone
   compiled binary that loads the embedded `sqlite-vec` extension (keyword + vector storage; embedder not
   bundled, so semantic degrades to keyword-only in the pure binary, as expected).
-- TODO: the `server` and `web` Stage 2 stubs, and the optional onnxruntime-web embedder spike that would
-  unlock semantic search inside the pure binary (Section 11).
+- DONE: the `server` and `web` Stage 2 stubs (server `/api/health` works over core; web renders a
+  placeholder and builds via Vite). All four workspaces typecheck.
+- TODO: the real Stage 2 routes (`/api/checkpoints`, `/api/search`, `/api/repos`) and the web UI on top
+  of them, plus the optional onnxruntime-web embedder spike that would unlock semantic search inside the
+  pure binary (Section 11).
 ```

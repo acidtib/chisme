@@ -1,0 +1,19 @@
+{
+  "name": "@chisme/server",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "HTTP API over @chisme/core. Stage 2, stub for now.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "bun --watch src/main.ts",
+    "start": "bun src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@chisme/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
