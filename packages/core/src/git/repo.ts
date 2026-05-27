@@ -184,6 +184,45 @@ export function getCommitInfo(root: string, sha: string): CommitInfo | null {
   };
 }
 
+/**
+ * Maps every checkpoint id to its linked commit in a single pass over all history.
+ *
+ * Calling findCommitByCheckpointId per checkpoint runs one `git log --all --grep`
+ * per id, and each walks the whole history, so indexing is O(checkpoints x commits).
+ * This reads every commit's trailer once, O(commits), and captures the commit
+ * metadata in the same pass so callers need no follow-up getCommitInfo. git streams
+ * commits newest-first, so the first commit seen for an id wins, matching
+ * findCommitByCheckpointId's `-1` (most recent match).
+ */
+export function buildCheckpointCommitMap(root: string): Map<string, CommitInfo> {
+  // RS goes at the start of each commit's output so the hash field stays clean (the
+  // previous commit's trailing newline lands before this separator, not in the hash).
+  const RS = "\x1e";
+  const fmt = RS + ["%H", "%s", "%an", "%ae", "%aI", "%B"].join(FS);
+  const r = git(root, ["log", "--all", `--format=${fmt}`]);
+  const map = new Map<string, CommitInfo>();
+  if (!r.ok) return map;
+  const trailer = /^Entire-Checkpoint:[ \t]*(\S+)/gm;
+  for (const record of r.stdout.split(RS)) {
+    if (!record) continue;
+    const [hash, subject, author, email, date, body = ""] = record.split(FS);
+    if (!hash) continue;
+    const info: CommitInfo = {
+      hash,
+      subject: subject ?? "",
+      author: author ?? "",
+      email: email ?? "",
+      date: date ?? "",
+    };
+    trailer.lastIndex = 0;
+    for (let m = trailer.exec(body); m; m = trailer.exec(body)) {
+      const id = m[1]!;
+      if (!map.has(id)) map.set(id, info);
+    }
+  }
+  return map;
+}
+
 /** Sums additions and deletions across a commit's diff (binary files count as 0). */
 export function getDiffStats(root: string, sha: string): DiffStats {
   const r = git(root, ["show", "--numstat", "--format=", sha]);

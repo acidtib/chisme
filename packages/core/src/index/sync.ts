@@ -8,10 +8,9 @@
  * checkpoint degrades it to keyword-only without failing the sync.
  */
 import type { Database } from "bun:sqlite";
-import type { RawCheckpoint } from "../types.ts";
+import type { CommitInfo, RawCheckpoint } from "../types.ts";
 import {
-  findCommitByCheckpointId,
-  getCommitInfo,
+  buildCheckpointCommitMap,
   getDiffStats,
   gitRoot,
   fetchCheckpoints,
@@ -77,10 +76,14 @@ function embedText(input: CheckpointInput): string {
 }
 
 /** Builds a checkpoint row from raw git data plus the linked commit, if any. */
-function buildInput(root: string, repoId: number, raw: RawCheckpoint): CheckpointInput {
+function buildInput(
+  root: string,
+  repoId: number,
+  raw: RawCheckpoint,
+  commit: CommitInfo | null,
+): CheckpointInput {
   const firstSession = raw.sessions[0];
-  const commitSha = findCommitByCheckpointId(root, raw.id);
-  const commit = commitSha ? getCommitInfo(root, commitSha) : null;
+  const commitSha = commit?.hash ?? null;
   const diff = commitSha ? getDiffStats(root, commitSha) : null;
 
   const branch = raw.summary.branch ?? firstSession?.metadata.branch ?? null;
@@ -157,6 +160,11 @@ export async function syncRepo(opts: SyncOptions): Promise<SyncResult> {
   let failed = 0;
   let embedderUsed = false;
 
+  // Link checkpoints to commits in one pass over history, rather than a
+  // per-checkpoint `git log --all --grep` that each rescans the whole history.
+  const commitMap =
+    newIds.length > 0 ? buildCheckpointCommitMap(root) : new Map<string, CommitInfo>();
+
   for (const id of newIds) {
     try {
       const raw = readCheckpoint(root, ref, id);
@@ -164,7 +172,7 @@ export async function syncRepo(opts: SyncOptions): Promise<SyncResult> {
         failed++;
         continue;
       }
-      const input = buildInput(root, repo.id, raw);
+      const input = buildInput(root, repo.id, raw, commitMap.get(id) ?? null);
       if (tryEmbed) {
         const vector = await embed(embedText(input));
         if (vector) {
