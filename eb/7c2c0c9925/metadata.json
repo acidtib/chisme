@@ -3,9 +3,20 @@
   "checkpoint_id": "eb7c2c0c9925",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
+    "packages/core/src/db/checkpoints.ts",
+    "packages/core/src/db/database.ts",
+    "packages/core/src/db/repos.ts",
+    "packages/core/src/db/schema.ts",
+    "packages/core/src/embeddings/embedder.ts",
+    "packages/core/src/git/checkpoints.ts",
+    "packages/core/src/git/repo.ts",
     "packages/core/src/index.ts",
+    "packages/core/src/index/sync.ts",
+    "packages/core/src/parser/transcript.ts",
+    "packages/core/src/search/fts.ts",
+    "packages/core/src/search/search.ts",
     "packages/core/src/types.ts"
   ],
   "sessions": [
@@ -14,13 +25,19 @@
       "transcript": "/eb/7c2c0c9925/0/full.jsonl",
       "content_hash": "/eb/7c2c0c9925/0/content_hash.txt",
       "prompt": "/eb/7c2c0c9925/0/prompt.txt"
+    },
+    {
+      "metadata": "/eb/7c2c0c9925/1/metadata.json",
+      "transcript": "/eb/7c2c0c9925/1/full.jsonl",
+      "content_hash": "/eb/7c2c0c9925/1/content_hash.txt",
+      "prompt": "/eb/7c2c0c9925/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 24658,
-    "cache_creation_tokens": 492223,
-    "cache_read_tokens": 10971671,
-    "output_tokens": 181621,
-    "api_call_count": 72
+    "input_tokens": 29309,
+    "cache_creation_tokens": 626622,
+    "cache_read_tokens": 18321833,
+    "output_tokens": 269113,
+    "api_call_count": 150
   }
 }
