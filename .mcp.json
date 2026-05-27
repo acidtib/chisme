@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "shadcn": {
+      "command": "bunx",
+      "args": ["shadcn@latest", "mcp"]
+    },
+    "next-devtools": {
+      "command": "bunx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "playwright": {
+      "command": "bunx",
+      "args": ["@playwright/mcp@latest", "--browser", "firefox"]
+    }
+  }
+}
