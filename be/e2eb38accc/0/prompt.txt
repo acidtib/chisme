@@ -1,0 +1,21 @@
+ok its pushed lets cut a rlease for 0.2.1
+
+---
+
+<task-notification>
+<task-id>bn1sa1u5s</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-acidtib-Code-entire-chisme/5aab98c1-e5d2-47a1-8b01-81907f2c0e5b/tasks/bn1sa1u5s.output</output-file>
+<status>completed</status>
+<summary>Background command "Watch release run to completion and show job summary" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+i tested it on mac arm base silicon m4 mac and it failed
+
+[Image #1]
+
+---
+
+it returned invalid or unsupported format for signature
