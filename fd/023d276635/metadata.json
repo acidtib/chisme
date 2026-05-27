@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "fd023d276635",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "packages/core/src/embeddings/embedder.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fd/023d276635/0/metadata.json",
+      "transcript": "/fd/023d276635/0/full.jsonl",
+      "content_hash": "/fd/023d276635/0/content_hash.txt",
+      "prompt": "/fd/023d276635/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 22663,
+    "cache_creation_tokens": 2018114,
+    "cache_read_tokens": 105242251,
+    "output_tokens": 409952,
+    "api_call_count": 386
+  }
+}
