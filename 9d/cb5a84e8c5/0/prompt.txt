@@ -122,3 +122,48 @@ heads uo, i see # Index this repo's own checkpoints (chisme index fetches the  t
 ---
 
 great lets move onto - Multi-threaded WASM (currently numThreads=1) for faster binary-mode indexing.
+
+---
+
+ok lets look at https://github.com/entireio/cli for the other agents supported and lets work on agent variants (Stage 1 shipped Claude only).
+
+Built-in agents
+
+    Claude Code — Stable · --agent claude-code. Full feature support including nested subagent capture.
+    Codex — Stable · --agent codex. Native hook system; main session capture (no subagent hooks yet).
+    Copilot CLI — Stable · --agent copilot-cli. Native hooks; token usage available post-session.
+    Cursor — Stable · --agent cursor. IDE and CLI. Rewind and resume are not available.
+    Factory Droid — Stable · --agent factoryai-droid. Subagent-aware capture via pre-tool-use and post-tool-use hooks.
+    Gemini CLI — Stable · --agent gemini. File changes captured; conversation transcript and token tracking are limited.
+    OpenCode — Stable · --agent opencode. TypeScript plugin integration; supports mid-turn commits.
+    Pi — Preview · --agent pi. TypeScript extension integration with JSONL transcript and token capture.
+
+---
+
+you forgot all this other supported enttire cli agents Claude Code — Stable · --agent claude-code. Full feature support including nested subagent capture.
+Codex — Stable · --agent codex. Native hook system; main session capture (no subagent hooks yet).
+Copilot CLI — Stable · --agent copilot-cli. Native hooks; token usage available post-session.
+Cursor — Stable · --agent cursor. IDE and CLI. Rewind and resume are not available.
+Factory Droid — Stable · --agent factoryai-droid. Subagent-aware capture via pre-tool-use and post-tool-use hooks.
+Gemini CLI — Stable · --agent gemini. File changes captured; conversation transcript and token tracking are limited.
+OpenCode — Stable · --agent opencode. TypeScript plugin integration; supports mid-turn commits.
+Pi — Preview · --agent pi. TypeScript extension integration with JSONL transcript and token capture.
+
+---
+
+you forgot all this other supported enttire cli agents Claude Code — Stable · --agent claude-code. Full feature support including nested subagent capture.
+Codex — Stable · --agent codex. Native hook system; main session capture (no subagent hooks yet).
+Copilot CLI — Stable · --agent copilot-cli. Native hooks; token usage available post-session.
+Cursor — Stable · --agent cursor. IDE and CLI. Rewind and resume are not available.
+Factory Droid — Stable · --agent factoryai-droid. Subagent-aware capture via pre-tool-use and post-tool-use hooks.
+Gemini CLI — Stable · --agent gemini. File changes captured; conversation transcript and token tracking are limited.
+OpenCode — Stable · --agent opencode. TypeScript plugin integration; supports mid-turn commits.
+Pi — Preview · --agent pi. TypeScript extension integration with JSONL transcript and token capture.
+
+---
+
+okc can you search online for pi agent and cursor so we can add them to our support
+
+---
+
+for pi i think we want to use skills https://pi.dev/docs/latest/skills
