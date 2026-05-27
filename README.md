@@ -19,11 +19,17 @@ machine.
 
 ## Install
 
-Once a release is published:
+Linux and macOS:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/acidtib/chisme/main/bin/install.sh | sh
 ```
+
+This downloads the right binary for your OS and architecture from the
+[latest release](https://github.com/acidtib/chisme/releases/latest), verifies its
+checksum, and installs it to `~/.local/bin` (override with `CHISME_INSTALL_DIR`).
+On Windows, download `chisme-windows-x64.exe` from the
+[releases page](https://github.com/acidtib/chisme/releases).
 
 Or build from source (requires [Bun](https://bun.sh)):
 
