@@ -89,3 +89,45 @@ export interface RawSession {
   /** The user prompt(s) that opened the session. */
   prompt: string;
 }
+
+/** Which retrieval list(s) surfaced a result. */
+export type MatchType = "keyword" | "semantic" | "both";
+
+/** A single search result's payload. Mirrors Entire's `--json` schema exactly. */
+export interface SearchResultData {
+  id: string;
+  prompt: string;
+  commitMessage: string | null;
+  commitSha: string | null;
+  branch: string | null;
+  /** Owner half of the `owner/repo` slug. */
+  org: string | null;
+  /** Repo half of the `owner/repo` slug. */
+  repo: string | null;
+  author: string | null;
+  /** Always null locally; chisme has no entire.io account to resolve usernames. */
+  authorUsername: string | null;
+  createdAt: string | null;
+  filesTouched: string[];
+}
+
+export interface SearchMeta {
+  matchType: MatchType;
+  score: number;
+  snippet: string;
+}
+
+export interface SearchResult {
+  type: "checkpoint";
+  data: SearchResultData;
+  searchMeta: SearchMeta;
+}
+
+/** The full `chisme search --json` response. */
+export interface SearchResponse {
+  results: SearchResult[];
+  total: number;
+  page: number;
+  total_pages: number;
+  limit: number;
+}
