@@ -395,6 +395,7 @@ Results below. The validation scripts lived under `/tmp/chisme-validate` and can
 | Single binary with embedded `vec0` extension | PASS | Embed via `import vecSo from "....so" with { type: "file" }`, write the bytes to a real cache path at runtime, then `loadExtension`. Confirmed standalone from a clean dir. |
 | Single binary embeddings via embedded `onnxruntime-web` WASM | PASS | The native `onnxruntime-node` / `sharp` addons cannot enter a `--compile` bundle, so a build plugin stubs them. transformers.js picks its backend from `process.release.name === 'node'`; override it (to e.g. `chisme-bun`) before importing so it uses its bundled `onnxruntime-web`. Embed `ort-wasm-simd-threaded.{wasm,mjs}` (platform-independent), extract at runtime, set `env.backends.onnx.wasm.wasmPaths` and `numThreads=1`. Confirmed: 384-dim vectors from a standalone binary in a clean dir; model still downloads on first run. |
 | WASM vs native embedding parity | PASS | Cosine similarity 0.993 between the native (onnxruntime-node) and WASM (onnxruntime-web) backends for the same input. Tiny FP differences do not change ranking. |
+| Multi-threaded WASM embedding in the binary | FAIL (do not retry) | `numThreads > 1` makes onnxruntime-web spawn a Web Worker thread pool that Bun terminates (`Worker has been terminated`); batching is slower (padding, no parallelism). A Bun worker pool (each worker its own pipeline) was built and works on linux (note: the worker must be a `--compile` entrypoint co-located with `main.ts`, and referenced as a bare `new Worker("./embed-worker.ts")`, since Bun resolves it relative to the main entry; the `new URL` form hangs). But it peaks at ~2x (K=2) then collapses from oversubscription, is slower than single-thread for normal-size indexes (pays 3 model loads at startup), only helps very large first indexes, and macOS/Windows worker support is unverified. Dropped: `numThreads=1`, single-thread inline. The dev/`bun install` path keeps the fast native multi-threaded backend. |
 
 Two gotchas worth calling out for the implementer:
 
@@ -679,8 +680,10 @@ real.
 - DONE: the per-OS release smoke test asserts a `both`/`semantic` match (indexes this repo's newest few
   checkpoints via `index --limit 5`, then searches), so a broken embedded embedder fails the release.
   `index --limit N` (newest N, recency from `git log`) keeps the test fast as history grows.
-- TODO: the web UI on top of the server routes. Optional later: a `-baseline` / musl matrix;
-  multi-threaded WASM. A future additive change can
+- DONE (investigated, not pursued): faster binary indexing via threading. Multi-threaded WASM is
+  impossible under Bun and a worker pool is not worth it (Section 10). `numThreads=1`, single-thread.
+- TODO: the web UI on top of the server routes. Optional later: a `-baseline` / musl matrix.
+  A future additive change can
   split per-session/message tables so `/api/checkpoints/:id` returns structured sessions rather than
   one transcript blob.
 ```

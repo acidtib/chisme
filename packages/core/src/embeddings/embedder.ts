@@ -63,6 +63,10 @@ async function init(): Promise<void> {
           numThreads?: number;
         };
         wasm.wasmPaths = config.wasmPaths;
+        // Keep this at 1. numThreads > 1 makes onnxruntime-web spawn a Web Worker
+        // thread pool, which Bun terminates ("Worker has been terminated"), so the
+        // embedder would fail. A separate Bun worker pool was also investigated and
+        // dropped (slower for normal-size indexes; see PLAN.md Section 10).
         wasm.numThreads = 1;
       }
 
