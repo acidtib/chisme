@@ -35,8 +35,11 @@ esac
 asset="chisme-${os}-${arch}"
 
 if [ "$VERSION" = "latest" ]; then
-  tag="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
-    | grep -m1 '"tag_name"' | cut -d '"' -f4)"
+  # Read the full API response before parsing, so curl is not interrupted by a
+  # short-circuiting pipe (grep -m1 closing early printed a benign "curl: (23)").
+  api_json="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest")" \
+    || err "could not reach the GitHub API for ${REPO}"
+  tag="$(printf '%s\n' "$api_json" | grep '"tag_name":' | head -n1 | cut -d '"' -f4)"
   [ -n "$tag" ] || err "could not resolve the latest release of ${REPO}"
 else
   tag="$VERSION"
