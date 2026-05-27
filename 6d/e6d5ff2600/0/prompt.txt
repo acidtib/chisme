@@ -1,0 +1,11 @@
+<task-notification>
+<task-id>b124fz981</task-id>
+<tool-use-id>toolu_01Je9LJrYk2TbdP43PYLaMCY</tool-use-id>
+<output-file>/tmp/claude-1000/-home-acidtib-Code-entire-chisme/5aab98c1-e5d2-47a1-8b01-81907f2c0e5b/tasks/b124fz981.output</output-file>
+<status>completed</status>
+<summary>Background command "Watch the v0.2.3 release run" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+timings: commit-map 729ms, read 105707ms, build 12889ms, embed 20289ms, db 1066ms
