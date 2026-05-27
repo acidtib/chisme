@@ -1,0 +1,27 @@
+{
+  "name": "chisme",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Local search and viewer for AI coding sessions captured as Entire checkpoints.",
+  "license": "MIT",
+  "bin": {
+    "chisme": "./src/main.ts"
+  },
+  "scripts": {
+    "build": "bun run build.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@chisme/core": "workspace:*"
+  },
+  "optionalDependencies": {
+    "sqlite-vec-darwin-arm64": "^0.1.9",
+    "sqlite-vec-darwin-x64": "^0.1.9",
+    "sqlite-vec-linux-arm64": "^0.1.9",
+    "sqlite-vec-linux-x64": "^0.1.9",
+    "sqlite-vec-windows-x64": "^0.1.9"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
