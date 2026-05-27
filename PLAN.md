@@ -491,8 +491,8 @@ Status keys: DONE means written, TODO means not started.
 - [DONE] `bin/install.sh`: POSIX `curl | sh` installer over GitHub Releases (Section 11).
 - [DONE] `.github/workflows/release.yml`: per-OS matrix that builds, smoke-tests, and publishes the
   binaries plus `SHA256SUMS` on a `v*` tag (Section 11).
-- [TODO] `README.md`: user-facing intro, install (`curl | bash`), usage.
-- [TODO] `LICENSE`: MIT (package.json declares MIT).
+- [DONE] `README.md`: user-facing intro, install (`curl | bash`), usage (commands marked works/planned).
+- [DONE] `LICENSE`: MIT.
 
 ### `packages/core` (`@chisme/core`)
 - [DONE] `package.json`: deps `@huggingface/transformers@^4.2.0`, `sqlite-vec@^0.1.9`.
