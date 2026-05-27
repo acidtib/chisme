@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "chisme": "bun run apps/cli/src/main.ts",
+    "bump": "bun run bump.ts",
     "build:cli": "bun run apps/cli/build.ts",
     "install:cli": "bun run build:cli && bun run apps/cli/install.ts",
     "dev:server": "bun run --filter @chisme/server dev",
