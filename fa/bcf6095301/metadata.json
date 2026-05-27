@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "fabcf6095301",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "apps/cli/src/cli/args.test.ts",
+    "apps/cli/src/cli/args.ts",
+    "apps/cli/src/commands/sync.ts",
+    "packages/core/src/index/sync.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fa/bcf6095301/0/metadata.json",
+      "transcript": "/fa/bcf6095301/0/full.jsonl",
+      "content_hash": "/fa/bcf6095301/0/content_hash.txt",
+      "prompt": "/fa/bcf6095301/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 22,
+    "cache_creation_tokens": 11616,
+    "cache_read_tokens": 2958512,
+    "output_tokens": 10108,
+    "api_call_count": 11
+  }
+}
