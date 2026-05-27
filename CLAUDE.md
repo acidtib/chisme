@@ -31,6 +31,13 @@ and the file-by-file build plan. Do not relitigate decisions recorded there with
   hardcoded version strings in source. Edits files only; commit and tag (`git tag vX.Y.Z`) separately.
 - `bun run dev:server`: run the Stage 2 HTTP API on http://localhost:4123.
 - `bun run --filter '*' typecheck`: typecheck every workspace.
+- `bun test`: run the test suite (Bun's built-in runner; tests are `*.test.ts` co-located with the
+  module they cover).
+- `bun run check`: Biome lint + format with `--write` (fixes in place). `bun run lint` and
+  `bun run format` run those halves alone; `bun run ci` is the read-only check CI uses.
+
+CI (`.github/workflows/ci.yml`) runs typecheck, `bun run ci`, and `bun test` on every push to `main`
+and every pull request. `release.yml` still owns the per-platform binary build and smoke test on tags.
 
 ## Conventions
 
@@ -65,3 +72,7 @@ Applies to code comments, docs, commit messages, PR descriptions, and chat respo
 - Embeddings run single-threaded (`numThreads = 1`). Multi-threaded WASM fails under Bun ("Worker
   has been terminated") and a worker pool was investigated and dropped. Do not reintroduce threading
   without re-reading PLAN.md Section 10.
+- Lint and format are Biome (`biome.json`). The `noNonNullAssertion` rule is off on purpose: tsconfig
+  sets `noUncheckedIndexedAccess`, so `!` on known-safe indexed and regex-match access is the intended
+  escape hatch. The build.ts platform matrix is kept aligned with a `// biome-ignore format:` line.
+  `biome.json` must stay strict JSON (no comments); only `biome.jsonc` allows them.

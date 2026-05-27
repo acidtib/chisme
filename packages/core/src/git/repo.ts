@@ -76,7 +76,10 @@ export function slugFromRemoteUrl(url: string): string | null {
  * The slug chisme indexes a repo under: `owner/repo` from the remote, or
  * `local/<dirname>` when there is no usable remote.
  */
-export function repoSlug(root: string, remote = "origin"): { slug: string; remoteUrl: string | null } {
+export function repoSlug(
+  root: string,
+  remote = "origin",
+): { slug: string; remoteUrl: string | null } {
   const url = remoteUrl(root, remote);
   const slug = url ? slugFromRemoteUrl(url) : null;
   return { slug: slug ?? `local/${basename(root)}`, remoteUrl: url };
@@ -172,7 +175,13 @@ export function getCommitInfo(root: string, sha: string): CommitInfo | null {
   if (!r.ok) return null;
   const [hash, subject, author, email, date] = r.stdout.trim().split(FS);
   if (!hash) return null;
-  return { hash, subject: subject ?? "", author: author ?? "", email: email ?? "", date: date ?? "" };
+  return {
+    hash,
+    subject: subject ?? "",
+    author: author ?? "",
+    email: email ?? "",
+    date: date ?? "",
+  };
 }
 
 /** Sums additions and deletions across a commit's diff (binary files count as 0). */

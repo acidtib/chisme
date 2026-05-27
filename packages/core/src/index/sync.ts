@@ -18,10 +18,19 @@ import {
   repoSlug,
   resolveCheckpointsRef,
 } from "../git/repo.ts";
-import { readCheckpoint, scanCheckpointIds, scanCheckpointIdsByRecency } from "../git/checkpoints.ts";
+import {
+  readCheckpoint,
+  scanCheckpointIds,
+  scanCheckpointIdsByRecency,
+} from "../git/checkpoints.ts";
 import { extractPlainText } from "../parser/transcript.ts";
 import { upsertRepo, setLastSync } from "../db/repos.ts";
-import { clearRepo, knownCheckpointIds, upsertCheckpoint, type CheckpointInput } from "../db/checkpoints.ts";
+import {
+  clearRepo,
+  knownCheckpointIds,
+  upsertCheckpoint,
+  type CheckpointInput,
+} from "../db/checkpoints.ts";
 import { embed } from "../embeddings/embedder.ts";
 
 export interface SyncOptions {
@@ -136,7 +145,8 @@ export async function syncRepo(opts: SyncOptions): Promise<SyncResult> {
   }
 
   // Recency order only when limiting (newest N); otherwise the cheaper tree scan.
-  const ids = opts.limit != null ? scanCheckpointIdsByRecency(root, ref) : scanCheckpointIds(root, ref);
+  const ids =
+    opts.limit != null ? scanCheckpointIdsByRecency(root, ref) : scanCheckpointIds(root, ref);
   if (opts.full) clearRepo(opts.db, repo.id, opts.vecAvailable);
   const known = opts.full ? new Set<string>() : knownCheckpointIds(opts.db, repo.id);
   let newIds = ids.filter((id) => !known.has(id));

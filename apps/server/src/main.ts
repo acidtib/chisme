@@ -129,7 +129,10 @@ const server = Bun.serve({
 
       return json({ error: "not found" }, 404);
     } catch (err) {
-      return json({ error: "internal error", message: err instanceof Error ? err.message : String(err) }, 500);
+      return json(
+        { error: "internal error", message: err instanceof Error ? err.message : String(err) },
+        500,
+      );
     }
   },
 });

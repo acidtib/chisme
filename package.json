@@ -16,9 +16,15 @@
     "install:cli": "bun run build:cli && bun run apps/cli/install.ts",
     "dev:server": "bun run --filter @chisme/server dev",
     "dev:web": "bun run --filter @chisme/web dev",
-    "typecheck": "bun run --filter '*' typecheck"
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun test",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "ci": "biome ci ."
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.16",
     "@types/bun": "latest",
     "typescript": "^5.7.0"
   },

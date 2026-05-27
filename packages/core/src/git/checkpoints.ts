@@ -6,12 +6,7 @@
  * than trusting the `sessions[]` paths in the top metadata, which may be absent or
  * use absolute-style paths. Missing files are tolerated.
  */
-import type {
-  CheckpointSummary,
-  RawCheckpoint,
-  RawSession,
-  SessionMetadata,
-} from "../types.ts";
+import type { CheckpointSummary, RawCheckpoint, RawSession, SessionMetadata } from "../types.ts";
 import { git, listTree, readBlob } from "./repo.ts";
 
 /** Matches a checkpoint directory: a two-hex shard plus the rest of the id. */

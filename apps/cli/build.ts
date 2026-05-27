@@ -54,7 +54,8 @@ const stubNative: Bun.BunPlugin = {
       namespace: "native-stub",
     }));
     build.onLoad({ filter: /.*/, namespace: "native-stub" }, () => ({
-      contents: "const noop = function(){}; export const InferenceSession = {}; export const Tensor = {}; export default noop;",
+      contents:
+        "const noop = function(){}; export const InferenceSession = {}; export const Tensor = {}; export default noop;",
       loader: "js",
     }));
   },
@@ -67,6 +68,7 @@ interface TargetSpec {
   out: string;
 }
 
+// biome-ignore format: keep the platform matrix as an aligned one-row-per-target table.
 const TARGETS: Record<string, TargetSpec> = {
   "linux-x64": { target: "bun-linux-x64", pkg: "sqlite-vec-linux-x64", ext: "vec0.so", out: "chisme-linux-x64" },
   "linux-arm64": { target: "bun-linux-arm64", pkg: "sqlite-vec-linux-arm64", ext: "vec0.so", out: "chisme-linux-arm64" },
@@ -77,7 +79,8 @@ const TARGETS: Record<string, TargetSpec> = {
 
 function nativeKey(): string {
   const arch = process.arch === "arm64" ? "arm64" : "x64";
-  const os = process.platform === "darwin" ? "darwin" : process.platform === "win32" ? "windows" : "linux";
+  const os =
+    process.platform === "darwin" ? "darwin" : process.platform === "win32" ? "windows" : "linux";
   return `${os}-${arch}`;
 }
 
@@ -193,7 +196,7 @@ try {
       await buildTarget(spec, outfile);
       sums.push(`${sha256(outfile)}  ${spec.out}`);
     }
-    writeFileSync(join(DIST, "SHA256SUMS"), sums.join("\n") + "\n");
+    writeFileSync(join(DIST, "SHA256SUMS"), `${sums.join("\n")}\n`);
     console.log(`\nWrote ${Object.keys(TARGETS).length} binaries + SHA256SUMS to ${DIST}`);
   } else {
     const key = nativeKey();

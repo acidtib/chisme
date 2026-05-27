@@ -82,7 +82,12 @@ function excerpt(text: string | null, max = 180): string {
   return clean.length > max ? `${clean.slice(0, max)}...` : clean;
 }
 
-function toResult(c: StoredCheckpoint, matchType: MatchType, score: number, snippet: string): SearchResult {
+function toResult(
+  c: StoredCheckpoint,
+  matchType: MatchType,
+  score: number,
+  snippet: string,
+): SearchResult {
   const { org, repo } = splitSlug(c.slug);
   return {
     type: "checkpoint",
@@ -272,7 +277,8 @@ export async function search(
 
   const hydrated = getCheckpointsByPks(opts.db, [...scores.keys()]);
 
-  const ranked: { c: StoredCheckpoint; score: number; matchType: MatchType; snippet: string }[] = [];
+  const ranked: { c: StoredCheckpoint; score: number; matchType: MatchType; snippet: string }[] =
+    [];
   for (const [pk, score] of scores) {
     const c = hydrated.get(pk);
     if (!c || !passesFilters(c, filters)) continue;

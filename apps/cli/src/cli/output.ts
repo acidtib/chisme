@@ -54,7 +54,8 @@ export function printSearchHuman(response: SearchResponse, info: SearchInfo): vo
     console.log(head);
     const prompt = firstLine(data.prompt);
     if (prompt) console.log(`  ${prompt}`);
-    if (searchMeta.snippet) console.log(colors.dim(`  ${searchMeta.snippet.replace(/\s+/g, " ").trim()}`));
+    if (searchMeta.snippet)
+      console.log(colors.dim(`  ${searchMeta.snippet.replace(/\s+/g, " ").trim()}`));
     console.log("");
   }
 

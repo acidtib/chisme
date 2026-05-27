@@ -112,6 +112,8 @@ async function dispatch(command: string, rest: string[]): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  console.error(`${colors.red("chisme:")} ${error instanceof Error ? error.message : String(error)}`);
+  console.error(
+    `${colors.red("chisme:")} ${error instanceof Error ? error.message : String(error)}`,
+  );
   process.exit(1);
 });

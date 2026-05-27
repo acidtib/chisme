@@ -1,0 +1,34 @@
+name: ci
+
+# Runs the static checks and tests on every push to main and every pull request.
+# The release workflow (release.yml) only fires on version tags and does the
+# per-platform binary build plus smoke test, so this is the gate for ordinary work.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: typecheck, lint, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.12
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run --filter '*' typecheck
+
+      - name: Lint and format check
+        run: bun run ci
+
+      - name: Test
+        run: bun test

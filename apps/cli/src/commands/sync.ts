@@ -81,7 +81,9 @@ export async function cmdSync(argv: string[]): Promise<void> {
     console.log(`${colors.green("Indexed")} ${result.slug}: ${summary}`);
 
     if (!vecAvailable) {
-      console.log(colors.dim("  semantic search unavailable (sqlite-vec not loaded); keyword-only index."));
+      console.log(
+        colors.dim("  semantic search unavailable (sqlite-vec not loaded); keyword-only index."),
+      );
     } else if (result.synced > 0 && !result.embedderUsed) {
       console.log(colors.dim("  embeddings unavailable; new checkpoints indexed keyword-only."));
     }

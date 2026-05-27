@@ -75,9 +75,9 @@ CREATE VIRTUAL TABLE IF NOT EXISTS vec_checkpoints USING vec0(
 
 function currentVersion(db: Database): number {
   try {
-    const row = db.query("SELECT value FROM meta WHERE key = 'schema_version'").get() as
-      | { value: string }
-      | null;
+    const row = db.query("SELECT value FROM meta WHERE key = 'schema_version'").get() as {
+      value: string;
+    } | null;
     return row ? Number(row.value) : 0;
   } catch {
     return 0;

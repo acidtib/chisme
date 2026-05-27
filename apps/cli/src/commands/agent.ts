@@ -26,11 +26,36 @@ interface AgentVariant {
 }
 
 const VARIANTS: Record<string, AgentVariant> = {
-  claude: { label: "Claude Code", dir: join(".claude", "agents"), file: "chisme-search.md", template: claudeTemplate },
-  codex: { label: "Codex", dir: join(".codex", "agents"), file: "chisme-search.toml", template: codexTemplate },
-  gemini: { label: "Gemini CLI", dir: join(".gemini", "agents"), file: "chisme-search.md", template: geminiTemplate },
-  cursor: { label: "Cursor", dir: join(".cursor", "commands"), file: "chisme-search.md", template: cursorTemplate },
-  pi: { label: "Pi", dir: join(".pi", "skills", "chisme-search"), file: "SKILL.md", template: piTemplate },
+  claude: {
+    label: "Claude Code",
+    dir: join(".claude", "agents"),
+    file: "chisme-search.md",
+    template: claudeTemplate,
+  },
+  codex: {
+    label: "Codex",
+    dir: join(".codex", "agents"),
+    file: "chisme-search.toml",
+    template: codexTemplate,
+  },
+  gemini: {
+    label: "Gemini CLI",
+    dir: join(".gemini", "agents"),
+    file: "chisme-search.md",
+    template: geminiTemplate,
+  },
+  cursor: {
+    label: "Cursor",
+    dir: join(".cursor", "commands"),
+    file: "chisme-search.md",
+    template: cursorTemplate,
+  },
+  pi: {
+    label: "Pi",
+    dir: join(".pi", "skills", "chisme-search"),
+    file: "SKILL.md",
+    template: piTemplate,
+  },
 };
 
 const HELP = `chisme agent install <agent> [--force]
@@ -75,7 +100,9 @@ export async function cmdAgent(argv: string[]): Promise<void> {
   } else if (VARIANTS[target]) {
     names = [target];
   } else {
-    console.error(`chisme: unknown agent '${target}'. Choose one of: ${Object.keys(VARIANTS).join(", ")}, all.`);
+    console.error(
+      `chisme: unknown agent '${target}'. Choose one of: ${Object.keys(VARIANTS).join(", ")}, all.`,
+    );
     process.exit(1);
   }
 

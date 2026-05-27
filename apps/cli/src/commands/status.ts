@@ -32,7 +32,9 @@ export async function cmdStatus(version: string): Promise<void> {
 
   console.log(colors.bold(`chisme ${version}`));
   console.log(`data dir:   ${dataDir()}`);
-  console.log(`index db:   ${dbPath} ${present ? colors.green("(present)") : colors.dim("(not created yet)")}`);
+  console.log(
+    `index db:   ${dbPath} ${present ? colors.green("(present)") : colors.dim("(not created yet)")}`,
+  );
   console.log("");
   console.log(`keyword search (FTS5):  ${colors.green("available")}`);
   console.log(
@@ -49,16 +51,24 @@ export async function cmdStatus(version: string): Promise<void> {
     return;
   }
 
-  const { db, close } = await openDatabase({ vecLoader: async (d) => (await loadVecExtension(d)).available });
+  const { db, close } = await openDatabase({
+    vecLoader: async (d) => (await loadVecExtension(d)).available,
+  });
   try {
     const total = countCheckpoints(db);
     const repos = allRepos(db);
     console.log("");
-    console.log(`indexed: ${colors.bold(String(total))} checkpoints across ${repos.length} repo(s)`);
+    console.log(
+      `indexed: ${colors.bold(String(total))} checkpoints across ${repos.length} repo(s)`,
+    );
     for (const repo of repos) {
       const count = countCheckpoints(db, repo.id);
-      const synced = repo.lastSync ? new Date(repo.lastSync).toISOString().slice(0, 16).replace("T", " ") : "never";
-      console.log(`  ${repo.slug.padEnd(32)} ${String(count).padStart(5)}  ${colors.dim(`last sync ${synced}`)}`);
+      const synced = repo.lastSync
+        ? new Date(repo.lastSync).toISOString().slice(0, 16).replace("T", " ")
+        : "never";
+      console.log(
+        `  ${repo.slug.padEnd(32)} ${String(count).padStart(5)}  ${colors.dim(`last sync ${synced}`)}`,
+      );
     }
   } finally {
     close();

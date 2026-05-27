@@ -40,7 +40,10 @@ interface EmbedderConfig {
   onModelProgress?: (p: ModelProgress) => void;
 }
 
-type FeatureExtractor = (text: string, opts: Record<string, unknown>) => Promise<{ data: Float32Array }>;
+type FeatureExtractor = (
+  text: string,
+  opts: Record<string, unknown>,
+) => Promise<{ data: Float32Array }>;
 
 let config: EmbedderConfig = {};
 let pipe: FeatureExtractor | null = null;
@@ -85,8 +88,14 @@ async function init(): Promise<void> {
         wasm.numThreads = 1;
       }
 
-      const options = config.onModelProgress ? { progress_callback: config.onModelProgress } : undefined;
-      pipe = (await transformers.pipeline("feature-extraction", MODEL, options)) as unknown as FeatureExtractor;
+      const options = config.onModelProgress
+        ? { progress_callback: config.onModelProgress }
+        : undefined;
+      pipe = (await transformers.pipeline(
+        "feature-extraction",
+        MODEL,
+        options,
+      )) as unknown as FeatureExtractor;
       available = true;
     } catch {
       pipe = null;

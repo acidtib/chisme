@@ -117,14 +117,18 @@ export function mapStored(row: CheckpointRow): StoredCheckpoint {
 
 /** The set of checkpoint ids already indexed for a repo. */
 export function knownCheckpointIds(db: Database, repoId: number): Set<string> {
-  const rows = db
-    .query("SELECT checkpoint_id FROM checkpoints WHERE repo_id = ?")
-    .all(repoId) as { checkpoint_id: string }[];
+  const rows = db.query("SELECT checkpoint_id FROM checkpoints WHERE repo_id = ?").all(repoId) as {
+    checkpoint_id: string;
+  }[];
   return new Set(rows.map((r) => r.checkpoint_id));
 }
 
 /** Inserts or replaces a checkpoint, its FTS row, and (if present) its vector. */
-export function upsertCheckpoint(db: Database, input: CheckpointInput, vecAvailable: boolean): void {
+export function upsertCheckpoint(
+  db: Database,
+  input: CheckpointInput,
+  vecAvailable: boolean,
+): void {
   const run = db.transaction(() => {
     const existing = db
       .query("SELECT id FROM checkpoints WHERE repo_id = ? AND checkpoint_id = ?")
@@ -195,9 +199,9 @@ export function upsertCheckpoint(db: Database, input: CheckpointInput, vecAvaila
 /** Removes every row for a repo (and its FTS / vec mirrors). Used by `--full`. */
 export function clearRepo(db: Database, repoId: number, vecAvailable: boolean): void {
   const run = db.transaction(() => {
-    const pks = db
-      .query("SELECT id FROM checkpoints WHERE repo_id = ?")
-      .all(repoId) as { id: number }[];
+    const pks = db.query("SELECT id FROM checkpoints WHERE repo_id = ?").all(repoId) as {
+      id: number;
+    }[];
     for (const { id } of pks) {
       db.query("DELETE FROM checkpoints_fts WHERE checkpoint_pk = ?").run(id);
       if (vecAvailable) db.query("DELETE FROM vec_checkpoints WHERE checkpoint_rowid = ?").run(id);
@@ -251,7 +255,9 @@ export function getCheckpointDetail(
     WHERE ${clauses.join(" AND ")}
     ORDER BY c.id DESC
     LIMIT 1`;
-  const row = db.query(sql).get(...params) as (CheckpointRow & { transcript_text: string | null }) | null;
+  const row = db.query(sql).get(...params) as
+    | (CheckpointRow & { transcript_text: string | null })
+    | null;
   if (!row) return null;
   return { ...mapStored(row), transcriptText: row.transcript_text };
 }

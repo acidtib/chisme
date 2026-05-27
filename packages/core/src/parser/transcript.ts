@@ -98,7 +98,12 @@ export interface TranscriptStats {
 
 /** Counts message and tool-use activity in a transcript. */
 export function analyze(jsonl: string): TranscriptStats {
-  const stats: TranscriptStats = { messages: 0, userMessages: 0, assistantMessages: 0, toolUses: 0 };
+  const stats: TranscriptStats = {
+    messages: 0,
+    userMessages: 0,
+    assistantMessages: 0,
+    toolUses: 0,
+  };
   for (const line of jsonl.split("\n")) {
     if (!line.trim()) continue;
     let obj: TranscriptLine;
