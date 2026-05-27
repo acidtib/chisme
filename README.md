@@ -47,7 +47,7 @@ installing, use `bun run build:cli` (produces `./chisme` at the repo root).
 ## Usage
 
 ```
-chisme index               # fetch and index this repo's checkpoints
+chisme sync                # fetch and index this repo's checkpoints
 chisme search "query"      # hybrid local search
                            #   flags: --json --limit --page
                            #          --author --branch --date --repo

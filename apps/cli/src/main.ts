@@ -27,8 +27,7 @@ Usage: chisme <command> [options]
 
 Commands:
   search [query]    Search indexed checkpoints (hybrid local search)
-  index             Fetch latest checkpoints and rebuild the local index
-  sync              Alias for index
+  sync              Fetch latest checkpoints and rebuild the local index
   status            Show index and environment status
   list              List recent checkpoints
   agent install     Write the Claude Code search subagent (.claude/agents)
@@ -54,7 +53,7 @@ async function cmdVersion(): Promise<void> {
   );
 }
 
-const COMMANDS = new Set(["search", "index", "sync", "list", "status", "agent"]);
+const COMMANDS = new Set(["search", "sync", "list", "status", "agent"]);
 
 async function main(): Promise<void> {
   // macOS uses Apple's extension-less SQLite by default; redirect bun:sqlite to a
@@ -85,7 +84,6 @@ async function main(): Promise<void> {
       return;
     }
     case "search":
-    case "index":
     case "sync":
     case "list":
     case "status":
@@ -102,7 +100,6 @@ async function dispatch(command: string, rest: string[]): Promise<void> {
   switch (command) {
     case "search":
       return cmdSearch(rest);
-    case "index":
     case "sync":
       return cmdSync(rest);
     case "list":

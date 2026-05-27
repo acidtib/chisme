@@ -41,7 +41,7 @@ export async function cmdStatus(version: string): Promise<void> {
 
   if (!present) {
     console.log("");
-    console.log("No index yet. Run 'chisme index' from inside an Entire-enabled repo.");
+    console.log("No index yet. Run 'chisme sync' from inside an Entire-enabled repo.");
     return;
   }
 

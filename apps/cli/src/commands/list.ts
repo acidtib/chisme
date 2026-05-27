@@ -29,7 +29,7 @@ export async function cmdList(argv: string[]): Promise<void> {
       const repo = getRepoBySlug(db, args.repo);
       if (!repo) {
         if (shouldUseJson(args.json)) printListJson([]);
-        else console.log(`${args.repo} is not indexed. Run 'chisme index' inside it.`);
+        else console.log(`${args.repo} is not indexed. Run 'chisme sync' inside it.`);
         return;
       }
       repoId = repo.id;

@@ -84,13 +84,13 @@ jobs:
           bin="$GITHUB_WORKSPACE/dist/${{ matrix.asset }}"
           "$bin" version
           # Index only the newest few checkpoints so the test stays fast as the
-          # repo's history grows (chisme index fetches entire/checkpoints/v1 from
+          # repo's history grows (chisme sync fetches entire/checkpoints/v1 from
           # origin). Then assert the embedded semantic search actually ran: with a
           # small indexed set, vec KNN returns those checkpoints for any query, so
           # a working embedder yields a "both" or "semantic" match. A broken one
           # yields only "keyword" (or nothing) and fails the build, so a semantic
           # regression cannot ship silently. The compact --json has no spaces.
-          "$bin" index --limit 5
+          "$bin" sync --limit 5
           "$bin" search "semantic search" --json > result.json
           cat result.json
           if ! grep -qE '"matchType":"(both|semantic)"' result.json; then

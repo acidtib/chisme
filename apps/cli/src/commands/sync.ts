@@ -1,5 +1,5 @@
 /**
- * `chisme index` (alias `chisme sync`) - fetch remote checkpoints and (re)index.
+ * `chisme sync` - fetch remote checkpoints and (re)index this repo.
  */
 import { syncRepo } from "@chisme/core";
 import { parseSyncArgs } from "../cli/args.ts";
@@ -7,7 +7,7 @@ import { openDb } from "../cli/db.ts";
 import { setupEmbedder } from "../runtime/embedder.ts";
 import { colors } from "../cli/colors.ts";
 
-const HELP = `chisme index [flags]   (alias: chisme sync)
+const HELP = `chisme sync [flags]
 
 Fetch the latest remote checkpoints and incrementally index this repo.
 

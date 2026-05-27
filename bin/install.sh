@@ -83,5 +83,5 @@ esac
 
 info ""
 info "Next steps:"
-info "  chisme index            # index this repo's Entire checkpoints"
+info "  chisme sync             # index this repo's Entire checkpoints"
 info "  chisme search \"...\"      # search your AI sessions locally"

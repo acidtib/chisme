@@ -37,7 +37,7 @@ export function printSearchHuman(response: SearchResponse, info: SearchInfo): vo
   console.log(colors.dim(`scope: ${info.scope}  |  ${caps}`));
 
   if (response.total === 0) {
-    console.log("\nNo matching checkpoints. Try a broader query or run 'chisme index'.");
+    console.log("\nNo matching checkpoints. Try a broader query or run 'chisme sync'.");
     return;
   }
 
@@ -73,7 +73,7 @@ export function printListJson(rows: StoredCheckpoint[]): void {
 
 export function printListHuman(rows: StoredCheckpoint[]): void {
   if (rows.length === 0) {
-    console.log("No checkpoints indexed. Run 'chisme index' from inside an Entire-enabled repo.");
+    console.log("No checkpoints indexed. Run 'chisme sync' from inside an Entire-enabled repo.");
     return;
   }
   for (const c of rows) {
