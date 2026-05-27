@@ -1,0 +1,23 @@
+so whats the updated status of this ┌────────────────────────┬─────────────────────────────────────────┐
+│          Tool          │                 Status                  │
+├────────────────────────┼─────────────────────────────────────────┤
+│ Linter                 │ None                                    │
+├────────────────────────┼─────────────────────────────────────────┤
+│ Formatter              │ None                                    │
+├────────────────────────┼─────────────────────────────────────────┤
+│ Type checking          │ tsc --noEmit per workspace (manual)     │
+├────────────────────────┼─────────────────────────────────────────┤
+│ Unit/integration tests │ None                                    │
+├────────────────────────┼─────────────────────────────────────────┤
+│ CI on push/PR          │ None                                    │
+├────────────────────────┼─────────────────────────────────────────┤
+│ CI on tag              │ Release build + per-platform smoke test │
+└────────────────────────┴─────────────────────────────────────────┘
+
+---
+
+soon a release if the ci failes does it stop the rlease?
+
+---
+
+not sure who you want to handl eit all i know is aht release should be running tests
