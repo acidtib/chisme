@@ -525,7 +525,8 @@ Status keys: DONE means written, TODO means not started.
   (vec0 table created only when vec loaded).
 - [DONE] `src/db/checkpoints.ts`: `knownCheckpointIds`, `upsertCheckpoint` (delete-then-insert keyed by
   `(repo_id, checkpoint_id)`, re-links FTS and vec to the fresh rowid), `clearRepo` (for `--full`),
-  `recentCheckpoints`, `getCheckpointsByPks`, `countCheckpoints`.
+  `recentCheckpoints` (paginated), `getCheckpointsByPks`, `getCheckpointDetail` (with transcript, for
+  the server), `countCheckpoints`.
 - [DONE] `src/db/repos.ts`: `upsertRepo(slug, url, root)`, `getRepoBySlug`, `allRepos`, `setLastSync`.
 - [DONE] `src/embeddings/embedder.ts`: lazy `await import("@huggingface/transformers")`, sets
   `env.cacheDir = modelCacheDir()`, `pipeline("feature-extraction","Xenova/all-MiniLM-L6-v2")`,
@@ -573,10 +574,14 @@ Status keys: DONE means written, TODO means not started.
 - [DONE] `src/commands/search.ts`, `sync.ts` (registered as both `index` and `sync`), `list.ts`,
   `status.ts`, and `agent.ts`. All wired to core.
 
-### `apps/server` (`@chisme/server`), Stage 2 stub
+### `apps/server` (`@chisme/server`), Stage 2
 - [DONE] `package.json` (dep `@chisme/core`, `dev`/`start`/`typecheck` scripts), `tsconfig.json`,
-  `src/main.ts` = `Bun.serve` with a working `/api/health` (reports vec availability plus repo and
-  checkpoint counts from core) and a printed TODO map of routes; other `/api/*` return 501.
+  `src/main.ts` = `Bun.serve` read-only JSON API over core. Routes: `GET /api/health`,
+  `/api/repos` (slug, last-sync, counts), `/api/checkpoints` (paginated `?repo,&limit,&page`),
+  `/api/checkpoints/:id` (with transcript, `?repo` to disambiguate), and `/api/search`
+  (`?q,&repo,&limit,&page,&author,&branch,&date,&semantic`, returns the Section 4 schema). Defaults
+  to all repos (not bound to a cwd); permissive CORS for the local web UI; OPTIONS 204, bad method 405,
+  errors 500. Verified live against the real index.
 
 ### `apps/web` (`@chisme/web`), Stage 2 stub
 - [DONE] `package.json` (React plus Vite), `index.html`, `src/main.tsx`, `src/App.tsx` placeholder,
@@ -658,12 +663,14 @@ real.
   search (matchType `both`), match-all, FTS crash-input sanitization, `--full` reindex, and a standalone
   compiled binary that loads the embedded `sqlite-vec` extension and the embedded onnxruntime-web WASM
   embedder (full keyword + vector storage + embeddings, confirmed from a clean dir).
-- DONE: the `server` and `web` Stage 2 stubs (server `/api/health` works over core; web renders a
-  placeholder and builds via Vite). All four workspaces typecheck.
+- DONE: the `@chisme/server` Stage 2 API over core: `/api/health`, `/api/repos`, `/api/checkpoints`
+  (paginated), `/api/checkpoints/:id` (with transcript), and `/api/search`. Verified live against the
+  real index. The `web` app is still a placeholder that builds via Vite. All four workspaces typecheck.
 - DONE: the onnxruntime-web embedder spike, integrated. The compiled binary now does full hybrid
   search standalone (`matchType: "both"` confirmed from a clean dir), so semantic no longer requires
   the `bun install` path. See Section 11 and the new rows in Section 10.
-- TODO: the real Stage 2 routes (`/api/checkpoints`, `/api/search`, `/api/repos`) and the web UI on top
-  of them. Optional later: per-OS release smoke test asserting `matchType: "both"`; a `-baseline` /
-  musl matrix; multi-threaded WASM.
+- TODO: the web UI on top of the server routes. Optional later: per-OS release smoke test asserting
+  `matchType: "both"`; a `-baseline` / musl matrix; multi-threaded WASM. A future additive change can
+  split per-session/message tables so `/api/checkpoints/:id` returns structured sessions rather than
+  one transcript blob.
 ```

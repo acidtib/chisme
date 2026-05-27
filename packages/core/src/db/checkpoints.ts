@@ -207,17 +207,53 @@ export function clearRepo(db: Database, repoId: number, vecAvailable: boolean): 
   run();
 }
 
-/** Most recent checkpoints, optionally scoped to one repo. */
+/** Most recent checkpoints, optionally scoped to one repo, with pagination. */
 export function recentCheckpoints(
   db: Database,
-  opts: { repoId?: number; limit?: number } = {},
+  opts: { repoId?: number; limit?: number; offset?: number } = {},
 ): StoredCheckpoint[] {
   const limit = opts.limit ?? 25;
+  const offset = opts.offset ?? 0;
   const where = opts.repoId != null ? "WHERE c.repo_id = ?" : "";
-  const sql = `${CHECKPOINT_SELECT} ${where} ORDER BY c.created_at DESC, c.id DESC LIMIT ?`;
-  const params = opts.repoId != null ? [opts.repoId, limit] : [limit];
+  const sql = `${CHECKPOINT_SELECT} ${where} ORDER BY c.created_at DESC, c.id DESC LIMIT ? OFFSET ?`;
+  const params = opts.repoId != null ? [opts.repoId, limit, offset] : [limit, offset];
   const rows = db.query(sql).all(...params) as CheckpointRow[];
   return rows.map(mapStored);
+}
+
+/** A checkpoint plus its full concatenated transcript text (for detail views). */
+export interface CheckpointDetail extends StoredCheckpoint {
+  transcriptText: string | null;
+}
+
+/**
+ * One checkpoint by its Entire id, including the transcript blob. `repoSlug`
+ * disambiguates when the same id exists in more than one indexed repo.
+ */
+export function getCheckpointDetail(
+  db: Database,
+  checkpointId: string,
+  repoSlug?: string,
+): CheckpointDetail | null {
+  const clauses = ["c.checkpoint_id = ?"];
+  const params: (string | number)[] = [checkpointId];
+  if (repoSlug) {
+    clauses.push("r.slug = ?");
+    params.push(repoSlug);
+  }
+  const sql = `
+    SELECT c.id AS pk, c.repo_id, r.slug, c.checkpoint_id, c.branch, c.commit_sha,
+           c.commit_message, c.author, c.author_email, c.created_at, c.files_touched,
+           c.strategy, c.input_tokens, c.output_tokens, c.additions, c.deletions,
+           c.prompt, c.summary, c.transcript_text
+    FROM checkpoints c
+    JOIN repos r ON r.id = c.repo_id
+    WHERE ${clauses.join(" AND ")}
+    ORDER BY c.id DESC
+    LIMIT 1`;
+  const row = db.query(sql).get(...params) as (CheckpointRow & { transcript_text: string | null }) | null;
+  if (!row) return null;
+  return { ...mapStored(row), transcriptText: row.transcript_text };
 }
 
 /** Hydrates checkpoints by primary key, returned keyed by pk for fusion. */
