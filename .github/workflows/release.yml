@@ -101,22 +101,25 @@ jobs:
           mkdir -p dist
           mv "${{ matrix.bin }}" "dist/${{ matrix.asset }}"
 
-      # Apple Silicon refuses to exec a binary whose code signature is missing or
-      # malformed (AMFI sends SIGKILL, the process just prints "killed"). Bun signs
-      # the compiled binary, but a bad Bun release can emit a truncated signature
-      # (oven-sh/bun#29120, broke v0.2.1 which shipped on Bun 1.3.12). The smoke test
-      # below cannot catch it because the build machine trusts a binary it just made;
-      # a fresh download on another Mac does not. Verify the signature statically so a
-      # regression fails the release here instead of shipping an unrunnable binary.
-      - name: Verify macOS code signature
+      # Apple Silicon refuses to exec a binary with an invalid code signature: AMFI
+      # sends SIGKILL and the process just prints "killed". Bun's `bun build --compile`
+      # ships a macOS binary signed incorrectly (it appends the module graph to a
+      # pre-signed runtime, leaving a digest mismatch; oven-sh/bun#29120), so the
+      # binary runs on the build machine but is killed after a fresh download (this
+      # broke v0.2.1). Strip Bun's signature and re-sign ad-hoc with Apple's codesign,
+      # then verify, so the published binary actually runs on end-user Macs. Ad-hoc is
+      # enough because install.sh downloads with curl, which sets no quarantine.
+      - name: Re-sign and verify macOS binary
         if: runner.os == 'macOS'
         shell: bash
         run: |
           set -euo pipefail
           bin="dist/${{ matrix.asset }}"
-          codesign --verify --strict --verbose=2 "$bin"
+          codesign --remove-signature "$bin" 2>/dev/null || true
+          codesign --force --sign - "$bin"
+          codesign --verify --verbose=2 "$bin"
           codesign -dvv "$bin"
-          echo "ok: $bin has a valid code signature"
+          echo "ok: re-signed and verified $bin"
 
       - name: Smoke test (standalone hybrid search end to end)
         shell: bash

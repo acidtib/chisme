@@ -158,17 +158,9 @@ async function buildTarget(spec: TargetSpec, outfile: string): Promise<void> {
     setSqliteModuleEmbedded(false);
   }
 
-  // Build for the host without an explicit target whenever we can. Bun ad-hoc
-  // signs the macOS binary only on this native path (it signs after appending the
-  // standalone payload). An explicit --target takes the cross-compile path, which
-  // leaves the macOS signature invalid ("code or signature have been modified") and
-  // gets the binary SIGKILLed by AMFI on arm64. The release builds each platform on
-  // its own native runner, so macOS targets stay native here; cross-compiled targets
-  // (e.g. building all from one host) keep the explicit target and are unsigned.
-  const native = spec.target === TARGETS[nativeKey()]?.target;
   const result = await Bun.build({
     entrypoints: [ENTRY],
-    compile: native ? { outfile } : { target: spec.target, outfile },
+    compile: { target: spec.target, outfile },
     minify: true,
     define: { BUILD_VERSION: JSON.stringify(VERSION) },
     plugins: [stubNative],

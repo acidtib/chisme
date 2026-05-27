@@ -69,10 +69,12 @@ Applies to code comments, docs, commit messages, PR descriptions, and chat respo
   `libsqlite3` and calls `Database.setCustomSQLite()` at startup (see `src/runtime/sqlite.ts`),
   because Apple's system SQLite (Bun's default) cannot load extensions, so sqlite-vec would fail
   there otherwise. Read PLAN.md Sections 10 and 11 before changing `build.ts`.
-- Build with Bun >= 1.3.13. Bun 1.3.12 has a `bun build --compile` regression that emits a truncated
-  macOS code signature, so the arm64/x64 binaries are SIGKILLed by AMFI on launch (just prints
-  "killed"); it shipped in v0.2.1. CI pins a fixed Bun and release.yml runs `codesign --verify` on the
-  macOS binaries so a future signing regression fails the release instead of shipping an unrunnable binary.
+- macOS binaries are re-signed in CI. `bun build --compile` ships a macOS binary with an invalid code
+  signature (it appends the module graph to a pre-signed runtime without re-signing; oven-sh/bun#29120),
+  so arm64 AMFI SIGKILLs it on launch ("killed", exit 137) after a fresh download. This shipped broken in
+  v0.2.1. release.yml strips that signature and re-signs ad-hoc with Apple `codesign --force --sign -`,
+  then `codesign --verify` gates the release. Ad-hoc is enough because install.sh uses curl (no quarantine).
+  Build with Bun >= 1.3.13: 1.3.12 emits a malformed signature that `codesign` cannot even strip or replace.
 - Embeddings run single-threaded (`numThreads = 1`). Multi-threaded WASM fails under Bun ("Worker
   has been terminated") and a worker pool was investigated and dropped. Do not reintroduce threading
   without re-reading PLAN.md Section 10.
