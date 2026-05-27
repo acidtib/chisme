@@ -1,0 +1,116 @@
+lets first focus on  The optional onnxruntime-web embedder spike to enable semantic search inside the pure compiled binary (the one open item from Section 11).
+
+---
+
+lets hold of from that right now, i want to test, so now we are at the stage where i can test the chisme search and claude angent ?
+
+---
+
+ok i releoaded claude the agent should show up now, also where in the linux and mac do we store the chisme files and db
+
+---
+
+yes lets follow the mac convention
+
+---
+
+cool, i noticed that in the copy it says like chisme is a open source search and web for entire sessions, lets refrase that to say like chisme is an entire compaiun cli
+
+---
+
+how do i build and install localy
+
+---
+
+yes add a a convenience script (e.g. bun run install:cli
+
+---
+
+i had commited the agent
+
+---
+
+ok whats left from the plan
+
+---
+
+ok i made a note on the optopnal polish stuff so we can come back it later, lets work on the server routes please update the plan, worko n the routes and commit them, we wil ltalk baout the ui after
+
+---
+
+/claude-md-management:claude-md-improver
+
+---
+
+yes
+
+---
+
+does the readme also need a touch up?
+
+---
+
+ok commit
+
+---
+
+lets work on Optional polish (non-blocking)
+
+- Cut a real release. The release workflow and install.sh exist but have never run — tagging v0.1.0 would exercise the per-OS matrix and the curl | bash flow for real. This is probably the most valuable next step since the README already advertises it.  before we continue on
+
+---
+
+the others finnished succesfully, but this one seems stuck   build chisme-darwin-x64
+Started 4m 58s ago
+Evaluating build.if
+Evaluating: success()
+Result: true
+Requested labels: macos-13
+Job defined at: acidtib/chisme/.github/workflows/release.yml@refs/tags/v0.1.0
+Waiting for a runner to pick up this job...
+
+---
+
+i see this in the docs 
+This deprecation includes the following labels:
+– macos-13
+– macos-13-large
+– macos-13-xlarge
+What you need to do
+
+(Recommended) If your workflow is architecture agnostic, you can migrate to any of our arm64 labels:
+– macos-15 or macos-latest
+– macos-14
+– macos-14-xlarge
+– macos-latest-xlarge or macos-15-xlarge
+
+For users that require the x86_64 (Intel) architecture, we have added a new label to support standard runner users. Jobs can be migrated to one of the following labels:
+– macos-15-intel (new)
+– macos-14-large
+– macos-latest-large or macos-15-large seems like macos-15-intel and macos-15 for arm
+
+---
+
+yes update that file
+
+---
+
+lets review the action step version to ensure we are using the latest
+
+
+build chisme-linux-x64
+Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/upload-artifact@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build chisme-linux-arm64
+Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/upload-artifact@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build chisme-darwin-arm64
+Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/upload-artifact@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build chisme-darwin-x64
+Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/upload-artifact@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build chisme-windows-x64.exe
+Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/upload-artifact@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+publish release
+Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/download-artifact@v4, softprops/action-gh-release@v2. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+
+---
+
+great, lets now look into - Per-OS release smoke test asserting matchType: "both", so a broken embedder in a shipped binary gets caught.
