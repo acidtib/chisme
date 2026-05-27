@@ -27,8 +27,8 @@ jobs:
         include:
           - { runner: ubuntu-latest, asset: chisme-linux-x64, bin: chisme }
           - { runner: ubuntu-24.04-arm, asset: chisme-linux-arm64, bin: chisme }
-          - { runner: macos-13, asset: chisme-darwin-x64, bin: chisme }
-          - { runner: macos-14, asset: chisme-darwin-arm64, bin: chisme }
+          - { runner: macos-15-intel, asset: chisme-darwin-x64, bin: chisme }
+          - { runner: macos-15, asset: chisme-darwin-arm64, bin: chisme }
           - { runner: windows-latest, asset: chisme-windows-x64.exe, bin: chisme.exe }
     steps:
       - uses: actions/checkout@v4

@@ -451,8 +451,8 @@ binary embedded semantic search.
 
 The workflow runs on a `v*` tag (and `workflow_dispatch`). Each matrix job:
 - runner to asset: `ubuntu-latest` to `chisme-linux-x64`, `ubuntu-24.04-arm` to `chisme-linux-arm64`,
-  `macos-13` to `chisme-darwin-x64`, `macos-14` to `chisme-darwin-arm64`, `windows-latest` to
-  `chisme-windows-x64.exe`.
+  `macos-15-intel` to `chisme-darwin-x64`, `macos-15` to `chisme-darwin-arm64`, `windows-latest` to
+  `chisme-windows-x64.exe`. (The retired `macos-13` Intel runner was replaced by `macos-15-intel`.)
 - `bun install --frozen-lockfile` (installs that host's native `sqlite-vec`), then `bun run build:cli`
   (native build; `build.ts` embeds the extension and injects `BUILD_VERSION`), then a standalone smoke
   test (`chisme version` from a temp dir).
