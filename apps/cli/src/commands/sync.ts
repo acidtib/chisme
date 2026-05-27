@@ -38,7 +38,8 @@ Fetch the latest remote checkpoints and incrementally index this repo.
 Flags:
   --full            wipe this repo's rows and reindex from scratch
   --limit <N>       index only the newest N checkpoints
-  --remote <name>   git remote to fetch from (default origin)`;
+  --remote <name>   git remote to fetch from (default origin)
+  --timings         print a per-phase time breakdown (git vs embed vs sqlite)`;
 
 export async function cmdSync(argv: string[]): Promise<void> {
   const args = parseSyncArgs(argv);
@@ -79,6 +80,16 @@ export async function cmdSync(argv: string[]): Promise<void> {
 
     const summary = `synced ${result.synced}, skipped ${result.skipped}, failed ${result.failed} in ${result.durationMs}ms`;
     console.log(`${colors.green("Indexed")} ${result.slug}: ${summary}`);
+
+    if (args.timings) {
+      const t = result.timings;
+      const ms = (n: number) => `${Math.round(n)}ms`;
+      console.log(
+        colors.dim(
+          `  timings: commit-map ${ms(t.commitMapMs)}, read ${ms(t.readMs)}, build ${ms(t.buildMs)}, embed ${ms(t.embedMs)}, db ${ms(t.dbMs)}`,
+        ),
+      );
+    }
 
     if (!vecAvailable) {
       console.log(

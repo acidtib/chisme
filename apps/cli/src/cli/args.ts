@@ -92,6 +92,7 @@ export interface SyncArgs {
   full: boolean;
   remote: string;
   limit?: number;
+  timings: boolean;
   help: boolean;
 }
 
@@ -103,6 +104,7 @@ export function parseSyncArgs(argv: string[]): SyncArgs {
       full: { type: "boolean" },
       remote: { type: "string" },
       limit: { type: "string" },
+      timings: { type: "boolean" },
       help: { type: "boolean", short: "h" },
     },
   });
@@ -111,6 +113,7 @@ export function parseSyncArgs(argv: string[]): SyncArgs {
     full: Boolean(values.full),
     remote: values.remote ?? "origin",
     limit: limit != null && Number.isFinite(limit) && limit > 0 ? limit : undefined,
+    timings: Boolean(values.timings),
     help: Boolean(values.help),
   };
 }

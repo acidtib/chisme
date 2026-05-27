@@ -45,6 +45,24 @@ export interface SyncOptions {
   onProgress?: (done: number, total: number) => void;
 }
 
+/** Wall-clock spent in each indexing phase, in milliseconds (for diagnosing slow syncs). */
+export interface SyncTimings {
+  /** One-pass build of the checkpoint id -> commit map. */
+  commitMapMs: number;
+  /** Reading checkpoint trees and blobs from git. */
+  readMs: number;
+  /** Building rows: diff stats (git) plus transcript text extraction (cpu). */
+  buildMs: number;
+  /** Computing embeddings (the single-thread WASM path in the compiled binary). */
+  embedMs: number;
+  /** Writing rows to SQLite. */
+  dbMs: number;
+}
+
+function zeroTimings(): SyncTimings {
+  return { commitMapMs: 0, readMs: 0, buildMs: 0, embedMs: 0, dbMs: 0 };
+}
+
 export interface SyncResult {
   slug: string;
   ref: string | null;
@@ -58,6 +76,8 @@ export interface SyncResult {
   noCheckpoints: boolean;
   /** True if at least one checkpoint was embedded. */
   embedderUsed: boolean;
+  /** Per-phase wall-clock, for diagnosing where a sync spends its time. */
+  timings: SyncTimings;
 }
 
 /** Normalizes a timestamp to ISO, or returns null when unparseable. */
@@ -144,6 +164,7 @@ export async function syncRepo(opts: SyncOptions): Promise<SyncResult> {
       total: 0,
       noCheckpoints: true,
       embedderUsed: false,
+      timings: zeroTimings(),
     };
   }
 
@@ -159,28 +180,42 @@ export async function syncRepo(opts: SyncOptions): Promise<SyncResult> {
   let synced = 0;
   let failed = 0;
   let embedderUsed = false;
+  const timings = zeroTimings();
 
   // Link checkpoints to commits in one pass over history, rather than a
   // per-checkpoint `git log --all --grep` that each rescans the whole history.
+  let mark = performance.now();
   const commitMap =
     newIds.length > 0 ? buildCheckpointCommitMap(root) : new Map<string, CommitInfo>();
+  timings.commitMapMs = performance.now() - mark;
 
   for (const id of newIds) {
     try {
+      mark = performance.now();
       const raw = readCheckpoint(root, ref, id);
+      timings.readMs += performance.now() - mark;
       if (!raw) {
         failed++;
         continue;
       }
+
+      mark = performance.now();
       const input = buildInput(root, repo.id, raw, commitMap.get(id) ?? null);
+      timings.buildMs += performance.now() - mark;
+
       if (tryEmbed) {
+        mark = performance.now();
         const vector = await embed(embedText(input));
+        timings.embedMs += performance.now() - mark;
         if (vector) {
           input.embedding = vector;
           embedderUsed = true;
         }
       }
+
+      mark = performance.now();
       upsertCheckpoint(opts.db, input, opts.vecAvailable);
+      timings.dbMs += performance.now() - mark;
       synced++;
     } catch {
       failed++;
@@ -200,5 +235,6 @@ export async function syncRepo(opts: SyncOptions): Promise<SyncResult> {
     total: ids.length,
     noCheckpoints: false,
     embedderUsed,
+    timings,
   };
 }
