@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "06129dcb2722",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/ci.yml",
+    "CLAUDE.md",
+    "apps/cli/build.ts",
+    "apps/cli/src/cli/args.test.ts",
+    "apps/cli/src/cli/output.ts",
+    "apps/cli/src/commands/agent.ts",
+    "apps/cli/src/commands/status.ts",
+    "apps/cli/src/commands/sync.ts",
+    "apps/cli/src/main.ts",
+    "apps/server/src/main.ts",
+    "apps/web/src/App.tsx",
+    "biome.json",
+    "bun.lock",
+    "package.json",
+    "packages/core/src/config/paths.test.ts",
+    "packages/core/src/db/checkpoints.ts",
+    "packages/core/src/db/schema.ts",
+    "packages/core/src/embeddings/embedder.ts",
+    "packages/core/src/git/checkpoints.ts",
+    "packages/core/src/git/repo.ts",
+    "packages/core/src/index/sync.ts",
+    "packages/core/src/parser/transcript.test.ts",
+    "packages/core/src/parser/transcript.ts",
+    "packages/core/src/search/fts.test.ts",
+    "packages/core/src/search/search.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/06/129dcb2722/0/metadata.json",
+      "transcript": "/06/129dcb2722/0/full.jsonl",
+      "content_hash": "/06/129dcb2722/0/content_hash.txt",
+      "prompt": "/06/129dcb2722/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 90,
+    "cache_creation_tokens": 75468,
+    "cache_read_tokens": 2407311,
+    "output_tokens": 34242,
+    "api_call_count": 45
+  }
+}

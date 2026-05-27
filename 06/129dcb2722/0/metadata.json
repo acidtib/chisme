@@ -1,0 +1,77 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "06129dcb2722",
+  "session_id": "97d9aa00-a9ef-4561-8fc3-dc7975f06a2b",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-27T20:52:29.102364508Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/ci.yml",
+    "CLAUDE.md",
+    "apps/cli/build.ts",
+    "apps/cli/src/cli/args.test.ts",
+    "apps/cli/src/cli/output.ts",
+    "apps/cli/src/commands/agent.ts",
+    "apps/cli/src/commands/status.ts",
+    "apps/cli/src/commands/sync.ts",
+    "apps/cli/src/main.ts",
+    "apps/server/src/main.ts",
+    "apps/web/src/App.tsx",
+    "biome.json",
+    "bun.lock",
+    "package.json",
+    "packages/core/src/config/paths.test.ts",
+    "packages/core/src/db/checkpoints.ts",
+    "packages/core/src/db/schema.ts",
+    "packages/core/src/embeddings/embedder.ts",
+    "packages/core/src/git/checkpoints.ts",
+    "packages/core/src/git/repo.ts",
+    "packages/core/src/index/sync.ts",
+    "packages/core/src/parser/transcript.test.ts",
+    "packages/core/src/parser/transcript.ts",
+    "packages/core/src/search/fts.test.ts",
+    "packages/core/src/search/search.ts"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "1a0252cdf1dc",
+  "token_usage": {
+    "input_tokens": 90,
+    "cache_creation_tokens": 75468,
+    "cache_read_tokens": 2407311,
+    "output_tokens": 34242,
+    "api_call_count": 45
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-27T20:52:29.093762089Z",
+    "agent_lines": 528,
+    "agent_removed": 53,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 528,
+    "total_lines_changed": 581,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 528,
+      "agent_lines_removed": 53
+    }
+  ]
+}

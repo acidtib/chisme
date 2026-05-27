@@ -1,0 +1,5 @@
+question do we have linters and format chekers setup? and do we have a test suite?
+
+---
+
+yea lets fix all that
