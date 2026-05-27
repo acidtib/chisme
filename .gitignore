@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+*.js.map
+
+# The compiled CLI binary
+/chisme
+/chisme-*
+
+# Local data / index (chisme stores its DB in the XDG data dir, but ignore any local copies)
+*.db
+*.db-shm
+*.db-wal
+.chisme/
+
+# Logs
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Env
+.env
+.env.local
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Build artifact: per-platform sqlite-vec extension copied in by apps/cli/build.ts
+apps/cli/src/embedded/vec0.bin

@@ -1,0 +1,6 @@
+# Bun configuration for the chisme monorepo.
+# https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Hoist dependencies to the root node_modules for workspace packages.
+linker = "hoisted"
