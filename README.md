@@ -11,11 +11,10 @@ machine. No entire.io account, no hosted service, no GitHub app authorization.
 ## Why
 
 Entire captures every AI agent session as a checkpoint and stores it locally in
-git, on the `entire/checkpoints/v1` branch. That capture is useful and chisme
-relies on it. But Entire's search is hosted: to search your own history you have
-to authorize your repository to entire.io and use their web interface. chisme
-replaces that hosted layer with a local one, so your session history stays on your
-machine.
+git, on the `entire/checkpoints/v1` branch. But Entire's search is hosted: to
+search your own history you have to authorize your repository to entire.io and use
+their web interface. chisme replaces that hosted layer with a local one, so your
+session history stays on your machine.
 
 ## Install
 
@@ -47,17 +46,17 @@ installing, use `bun run build:cli` (produces `./chisme` at the repo root).
 ## Usage
 
 ```
-chisme sync                # fetch and index this repo's checkpoints
-chisme search "query"      # hybrid local search
-                           #   flags: --json --limit --page
-                           #          --author --branch --date --repo
-                           #   inline filters: author: date: branch: repo:
-chisme list                # list recent checkpoints
-chisme status              # index and environment status
+chisme sync                    # fetch and index this repo's checkpoints
+chisme search "query"          # hybrid local search
+                               #   flags: --json --limit --page
+                               #          --author --branch --date --repo
+                               #   inline filters: author: date: branch: repo:
+chisme list                    # list recent checkpoints
+chisme status                  # index and environment status
 chisme agent install <agent>   # install the chisme-search subagent (agent required)
-                           #   agent: claude | codex | gemini | cursor | pi | all
-chisme version             # version and capabilities
-chisme help                # help
+                               #   agent: claude | codex | gemini | cursor | pi | all
+chisme version                 # version and capabilities
+chisme help                    # help
 ```
 
 `chisme agent install <agent>` writes a chisme-search subagent that searches your

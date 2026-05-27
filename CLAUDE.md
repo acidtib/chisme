@@ -56,4 +56,10 @@ Applies to code comments, docs, commit messages, PR descriptions, and chat respo
   branch and never installs agent hooks.
 - Keep writes to the index idempotent so re-syncs are safe.
 - The compiled binary embeds the sqlite-vec extension and the onnxruntime-web WASM, and stubs the
-  native `onnxruntime-node` / `sharp` imports at build time. Read PLAN.md Section 11 before changing `build.ts`.
+  native `onnxruntime-node` / `sharp` imports at build time. On macOS it also embeds a vanilla
+  `libsqlite3` and calls `Database.setCustomSQLite()` at startup (see `src/runtime/sqlite.ts`),
+  because Apple's system SQLite (Bun's default) cannot load extensions, so sqlite-vec would fail
+  there otherwise. Read PLAN.md Sections 10 and 11 before changing `build.ts`.
+- Embeddings run single-threaded (`numThreads = 1`). Multi-threaded WASM fails under Bun ("Worker
+  has been terminated") and a worker pool was investigated and dropped. Do not reintroduce threading
+  without re-reading PLAN.md Section 10.
