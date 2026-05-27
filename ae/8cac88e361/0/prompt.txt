@@ -1,0 +1,15 @@
+<task-notification>
+<task-id>bdt0qg5iq</task-id>
+<tool-use-id>toolu_013wP9GeeeqAiwrv6PkE9MLA</tool-use-id>
+<output-file>/tmp/claude-1000/-home-acidtib-Code-entire-chisme/5aab98c1-e5d2-47a1-8b01-81907f2c0e5b/tasks/bdt0qg5iq.output</output-file>
+<status>completed</status>
+<summary>Background command "Watch the re-signed v0.2.2 release and report job conclusions" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+i tested the build on the mac na dit works
+
+---
+
+an issue i did run into is that the ingle treat indexing is extremenly slow
