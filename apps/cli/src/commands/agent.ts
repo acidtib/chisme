@@ -1,18 +1,49 @@
 /**
- * `chisme agent install` - write the Claude Code search subagent.
+ * `chisme agent install [agent]` - write the chisme-search subagent.
  *
- * The template ships embedded in the binary via `with { type: "file" }`. We write
- * it to `.claude/agents/chisme-search.md` in the current repo, refusing to clobber
- * an existing file unless `--force` is given.
+ * Mirrors the search subagents Entire ships, adapted to call `chisme search --json`
+ * against the local index. One template per supported tool, each shipped embedded
+ * in the binary via `with { type: "file" }`:
+ *   claude -> .claude/agents/chisme-search.md
+ *   codex  -> .codex/agents/chisme-search.toml
+ *   gemini -> .gemini/agents/chisme-search.md
+ *   cursor -> .cursor/commands/chisme-search.md
+ *   pi     -> .pi/skills/chisme-search/SKILL.md
  */
 import { mkdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import agentTemplatePath from "../agent/chisme-search.md" with { type: "file" };
+import claudeTemplate from "../agent/chisme-search.claude.md" with { type: "file" };
+import codexTemplate from "../agent/chisme-search.codex.toml" with { type: "file" };
+import geminiTemplate from "../agent/chisme-search.gemini.md" with { type: "file" };
+import cursorTemplate from "../agent/chisme-search.cursor.md" with { type: "file" };
+import piTemplate from "../agent/chisme-search.pi.md" with { type: "file" };
 
-const HELP = `chisme agent install [--force]
+interface AgentVariant {
+  label: string;
+  dir: string;
+  file: string;
+  template: string;
+}
 
-Write the Claude Code search subagent to .claude/agents/chisme-search.md.
-It calls 'chisme search --json' against your local index.
+const VARIANTS: Record<string, AgentVariant> = {
+  claude: { label: "Claude Code", dir: join(".claude", "agents"), file: "chisme-search.md", template: claudeTemplate },
+  codex: { label: "Codex", dir: join(".codex", "agents"), file: "chisme-search.toml", template: codexTemplate },
+  gemini: { label: "Gemini CLI", dir: join(".gemini", "agents"), file: "chisme-search.md", template: geminiTemplate },
+  cursor: { label: "Cursor", dir: join(".cursor", "commands"), file: "chisme-search.md", template: cursorTemplate },
+  pi: { label: "Pi", dir: join(".pi", "skills", "chisme-search"), file: "SKILL.md", template: piTemplate },
+};
+
+const HELP = `chisme agent install [agent] [--force]
+
+Write the chisme-search subagent (it calls 'chisme search --json') for an AI coding tool.
+
+Agents:
+  claude   Claude Code   .claude/agents/chisme-search.md         (default)
+  codex    Codex         .codex/agents/chisme-search.toml
+  gemini   Gemini CLI    .gemini/agents/chisme-search.md
+  cursor   Cursor        .cursor/commands/chisme-search.md
+  pi       Pi            .pi/skills/chisme-search/SKILL.md
+  all      install every variant above
 
 Flags:
   --force   overwrite an existing subagent file`;
@@ -23,20 +54,40 @@ export async function cmdAgent(argv: string[]): Promise<void> {
     return;
   }
   if (argv[0] !== "install") {
-    console.error("usage: chisme agent install [--force]");
+    console.error("usage: chisme agent install [agent] [--force]");
     process.exit(1);
   }
 
   const force = argv.includes("--force");
-  const dir = join(process.cwd(), ".claude", "agents");
-  const dest = join(dir, "chisme-search.md");
-  if (existsSync(dest) && !force) {
-    console.error(`chisme: ${dest} already exists. Use --force to overwrite.`);
+  const target = argv.slice(1).find((a) => !a.startsWith("-")) ?? "claude";
+
+  let names: string[];
+  if (target === "all") {
+    names = Object.keys(VARIANTS);
+  } else if (VARIANTS[target]) {
+    names = [target];
+  } else {
+    console.error(`chisme: unknown agent '${target}'. Choose one of: ${Object.keys(VARIANTS).join(", ")}, all.`);
     process.exit(1);
   }
 
-  mkdirSync(dir, { recursive: true });
-  await Bun.write(dest, await Bun.file(agentTemplatePath).text());
-  console.log(`Wrote ${dest}`);
-  console.log("The chisme-search subagent calls 'chisme search --json'.");
+  let wrote = 0;
+  let skipped = 0;
+  for (const name of names) {
+    const variant = VARIANTS[name]!;
+    const dir = join(process.cwd(), variant.dir);
+    const dest = join(dir, variant.file);
+    if (existsSync(dest) && !force) {
+      console.error(`chisme: ${dest} already exists. Use --force to overwrite.`);
+      skipped++;
+      continue;
+    }
+    mkdirSync(dir, { recursive: true });
+    await Bun.write(dest, await Bun.file(variant.template).text());
+    console.log(`Wrote ${dest} (${variant.label})`);
+    wrote++;
+  }
+
+  if (wrote > 0) console.log("The chisme-search subagent calls 'chisme search --json'.");
+  else if (skipped > 0) process.exit(1);
 }

@@ -54,13 +54,18 @@ chisme search "query"      # hybrid local search
                            #   inline filters: author: date: branch: repo:
 chisme list                # list recent checkpoints
 chisme status              # index and environment status
-chisme agent install       # install the chisme-search Claude subagent
+chisme agent install       # install the chisme-search subagent (claude by default)
+                           #   chisme agent install codex | gemini | cursor | pi | all
 chisme version             # version and capabilities
 chisme help                # help
 ```
 
-`chisme agent install` writes a Claude Code subagent (`.claude/agents/chisme-search.md`)
-that searches your history by calling `chisme search --json`.
+`chisme agent install [agent]` writes a chisme-search subagent that searches your
+history by calling `chisme search --json`. Supported agents: Claude Code
+(`.claude/agents/chisme-search.md`, the default), Codex
+(`.codex/agents/chisme-search.toml`), Gemini CLI (`.gemini/agents/chisme-search.md`),
+Cursor (`.cursor/commands/chisme-search.md`), and Pi
+(`.pi/skills/chisme-search/SKILL.md`). Use `all` to install every variant.
 
 ## How it works
 

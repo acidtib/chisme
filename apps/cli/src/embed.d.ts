@@ -8,3 +8,7 @@ declare module "*.bin" {
   const path: string;
   export default path;
 }
+declare module "*.toml" {
+  const path: string;
+  export default path;
+}

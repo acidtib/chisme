@@ -325,7 +325,8 @@ Commands:
                         --limit <N>   index only the newest N checkpoints
   status              Show index and current-repo state (counts, last sync, vec and model availability).
   list                List recent checkpoints from the index.   --repo, --limit
-  agent install       Write the Claude Code search subagent (.claude/agents/chisme-search.md).
+  agent install [agent]  Write the chisme-search subagent for an AI coding tool.
+                        agent = claude (default), codex, gemini, cursor, pi, or all
                         --force       overwrite if present
   help [command]      Show help.
   version             Show version.
@@ -335,7 +336,20 @@ Global: --help/-h, --version/-v
 
 ---
 
-## 9. Claude Code search subagent
+## 9. Search subagents (Claude, Codex, Gemini, Cursor, Pi)
+
+`chisme agent install [agent]` writes a chisme-search subagent for an AI coding tool, adapted to call
+`chisme search --json` against the local index:
+
+- `claude` (default): `.claude/agents/chisme-search.md` (frontmatter `tools: Bash`, `model: haiku`).
+- `codex`: `.codex/agents/chisme-search.toml` (`sandbox_mode = "read-only"`, `developer_instructions`).
+- `gemini`: `.gemini/agents/chisme-search.md` (frontmatter `kind: local`, `tools: [run_shell_command]`).
+- `cursor`: `.cursor/commands/chisme-search.md` (a `/chisme-search` slash command, plain markdown).
+- `pi`: `.pi/skills/chisme-search/SKILL.md` (a Pi skill, frontmatter `name` + `description`).
+- `all`: writes every variant. `--force` overwrites.
+
+All carry the same hardened instructions. The Claude template is shown below; the others use the same
+body in their tool's format.
 
 `chisme agent install` writes `.claude/agents/chisme-search.md` (create the dir if needed). This is a
 local adaptation of Entire's shipped subagent. Their original called `entire search --json` against the
@@ -373,8 +387,13 @@ Workflow:
 Keep answers concise and evidence-based.
 ```
 
-Reference: Entire's original lives at `.claude/agents/entire-search.md` in `github.com/entireio/cli`.
-They also ship `.gemini` and `.codex` variants. chisme can add those later; Stage 1 is Claude only.
+Reference: Entire's originals live at `.claude/agents/entire-search.md`, `.codex/agents/entire-search.toml`,
+and `.gemini/agents/entire-search.md` in `github.com/entireio/cli`. chisme mirrors those three (adapted:
+no auth, no interactive-TUI caveat since `chisme search` prints a table and auto-JSONs when piped) and
+adds two more from each tool's own docs: a Cursor command (`cursor.com/docs`) and a Pi skill
+(`pi.dev/docs/latest/skills`). Entire's broader `--agent` list is session capture, which chisme does
+not do; only tools with a custom search-agent/command/skill format get a variant. OpenCode (subagents)
+could be added the same way later.
 
 ---
 
@@ -561,8 +580,8 @@ Status keys: DONE means written, TODO means not started.
   injects `BUILD_VERSION`. See Section 11.
 - [DONE] `src/main.ts`: entry and dispatch. All commands wired to core: `version`, `help`
   (plus `help <command>`), `status`, `agent install`, `search`, `index`/`sync`, and `list`.
-- [DONE] `src/agent/chisme-search.md`: the Section 9 template (embedded via `with { type: "file" }`,
-  written by `agent install`).
+- [DONE] `src/agent/chisme-search.{claude.md,codex.toml,gemini.md,cursor.md,pi.md}`: the Section 9
+  templates (embedded via `with { type: "file" }`, written by `agent install [agent]`).
 - [DONE] `src/embedded/vec-extension.ts`: build-time pointer to the embedded extension (null in dev).
 - [DONE] `src/embedded/embedder-assets.ts`: build-time pointer to the embedded onnxruntime-web WASM
   binary and its mjs loader (null in dev; build.ts rewrites it during compile).
