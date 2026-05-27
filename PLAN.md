@@ -390,6 +390,8 @@ Results below. The validation scripts lived under `/tmp/chisme-validate` and can
 | Single binary via `bun build --compile` (keyword) | PASS | FTS5 works standalone with no node_modules. |
 | Single binary loads `sqlite-vec` from node_modules path | FAIL | Compiled binary cannot resolve `getLoadablePath()` at runtime: `Cannot find module 'sqlite-vec-linux-x64/vec0.so'`. Use embed-and-extract instead (next row). |
 | Single binary with embedded `vec0` extension | PASS | Embed via `import vecSo from "....so" with { type: "file" }`, write the bytes to a real cache path at runtime, then `loadExtension`. Confirmed standalone from a clean dir. |
+| Single binary embeddings via embedded `onnxruntime-web` WASM | PASS | The native `onnxruntime-node` / `sharp` addons cannot enter a `--compile` bundle, so a build plugin stubs them. transformers.js picks its backend from `process.release.name === 'node'`; override it (to e.g. `chisme-bun`) before importing so it uses its bundled `onnxruntime-web`. Embed `ort-wasm-simd-threaded.{wasm,mjs}` (platform-independent), extract at runtime, set `env.backends.onnx.wasm.wasmPaths` and `numThreads=1`. Confirmed: 384-dim vectors from a standalone binary in a clean dir; model still downloads on first run. |
+| WASM vs native embedding parity | PASS | Cosine similarity 0.993 between the native (onnxruntime-node) and WASM (onnxruntime-web) backends for the same input. Tiny FP differences do not change ranking. |
 
 Two gotchas worth calling out for the implementer:
 
@@ -416,23 +418,27 @@ plan is tiered.
 - Vector storage and KNN (`sqlite-vec`), by embedding the platform `vec0` extension as a file asset and
   extracting it to the cache dir on first run, then `loadExtension` (Section 10).
 
-### The one open item: embeddings runtime in a pure binary
+### The embeddings runtime in a pure binary (RESOLVED, option 1 shipped)
 Semantic search needs an embedder at both index time and query time. The embedder
-(`@huggingface/transformers` plus onnxruntime) is the remaining gate for full hybrid inside a single
+(`@huggingface/transformers` plus onnxruntime) was the last gate for full hybrid inside a single
 binary, because onnxruntime ships a native addon resolved in a node-pre-gyp style that does not bundle
-cleanly into `--compile`. Options, in order of preference, to be validated as a follow-up task:
-1. onnxruntime-web (WASM) backend: embed the `.wasm` files as file assets and set
-   `env.backends.onnx.wasm.wasmPaths` to the extracted paths. This is the path to a fully
-   self-contained semantic binary. Needs a focused spike.
-2. First-run runtime fetch: the binary downloads the onnxruntime artifact (and the model weights,
-   which download anyway) into the data dir on first `index`. Acceptable, common for ML CLIs.
-3. Optional Ollama: if a local Ollama is running, use it for embeddings.
-4. Degrade to keyword-only. Always available, fully functional, matches a large part of Entire's value.
+cleanly into `--compile`. Resolved via option 1 (onnxruntime-web WASM), validated and integrated:
 
-Recommendation for Stage 1: ship a keyword-plus-vector-storage binary now (semantic auto-enabled when
-an embedder is present, otherwise keyword-only), and track the WASM embedder spike (option 1) as the
-task that unlocks semantic in the pure binary. The full hybrid experience always works via the
-`bun install` developer and team path.
+- `apps/cli/build.ts` runs a Bun build plugin that stubs `onnxruntime-node` and `sharp` (the native
+  addons transformers.js statically imports but text embeddings never use), so the bundle compiles.
+- It embeds `ort-wasm-simd-threaded.{wasm,mjs}` from `onnxruntime-web/dist` as file assets. WASM is
+  platform-independent, so this is embedded for every target (unlike per-platform `sqlite-vec`).
+- At runtime `apps/cli/src/runtime/embedder.ts` extracts those assets to the data dir and calls
+  `configureEmbedder({ forceWebBackend, wasmPaths })` in `@chisme/core`. The embedder then overrides
+  `process.release.name` before importing transformers (its backend choice keys on `=== 'node'`),
+  steering it onto the bundled `onnxruntime-web` with `numThreads = 1`.
+- Confirmed: a standalone binary in a clean dir indexes and searches with `matchType: "both"`. The
+  model still downloads on first run (acceptable; weights download on any path). Native and WASM
+  embeddings agree to cosine 0.993, so ranking is unchanged.
+
+The alternatives (not needed now) were: first-run runtime fetch of the onnxruntime artifact; optional
+Ollama if running; or degrade to keyword-only. Keyword and vector storage remain the always-on floor
+if the embedder ever fails to load. The dev / `bun install` path still uses the faster native backend.
 
 ### Build matrix (per-OS, on tag): `.github/workflows/release.yml`
 
@@ -459,8 +465,11 @@ Notes:
 - musl (Alpine) and the AVX2 `-baseline` x64 variants are not in the matrix yet. Add later: musl needs
   musl runners or containers, `-baseline` needs the Bun `*-baseline` targets for users who hit
   "Illegal instruction" on old CPUs.
-- `build.ts --all` still cross-compiles all targets locally for convenience, but non-native targets
-  there are keyword-only (missing their extension). Releases use the per-OS matrix so they are not.
+- `build.ts --all` still cross-compiles all targets locally for convenience. The WASM embedder is
+  platform-independent so every target gets it, but non-native targets miss their per-platform
+  `sqlite-vec` extension, and semantic search needs both the embedder and vector storage. So those
+  targets are effectively keyword-only until vector storage is present. Releases use the per-OS matrix
+  so each binary gets its native extension and full hybrid search.
 
 ### install.sh (hosted, mirrors Entire's flow)
 A POSIX `sh` script that:
@@ -520,7 +529,8 @@ Status keys: DONE means written, TODO means not started.
 - [DONE] `src/embeddings/embedder.ts`: lazy `await import("@huggingface/transformers")`, sets
   `env.cacheDir = modelCacheDir()`, `pipeline("feature-extraction","Xenova/all-MiniLM-L6-v2")`,
   `embed(text): Promise<Float32Array | null>`, `isEmbedderAvailable()`, `isEmbedderInstalled()`
-  (import-only probe so `status` does not download the model).
+  (import-only probe so `status` does not download the model), plus `configureEmbedder(opts)` to force
+  the WASM backend and point at extracted wasm paths (used by the compiled binary; see Section 11).
 - [DONE] `src/index/sync.ts`: the Section 6 flow. `syncRepo(opts)` to `SyncResult`.
 - [DONE] `src/search/search.ts`: the Section 7 flow. `search(query, opts)` to `{ response, info }`
   where `response` is the exact Section 4 `SearchResponse` and `info` carries scope notes for human
@@ -535,15 +545,22 @@ Status keys: DONE means written, TODO means not started.
   extension), and a `typecheck` script.
 - [DONE] `tsconfig.json`.
 - [DONE] `build.ts`: `Bun.build` compile. Native build to `./chisme`, `--all` cross-compile to `./dist`
-  with `SHA256SUMS`. Embeds the matching `vec0` extension (temporarily rewrites
-  `src/embedded/vec-extension.ts`) and injects `BUILD_VERSION`. See Section 11.
+  with `SHA256SUMS`. Embeds the matching `vec0` extension and the platform-independent
+  `onnxruntime-web` WASM (temporarily rewrites `src/embedded/vec-extension.ts` and
+  `embedder-assets.ts`), stubs the native `onnxruntime-node` / `sharp` imports via a build plugin, and
+  injects `BUILD_VERSION`. See Section 11.
 - [DONE] `src/main.ts`: entry and dispatch. All commands wired to core: `version`, `help`
   (plus `help <command>`), `status`, `agent install`, `search`, `index`/`sync`, and `list`.
 - [DONE] `src/agent/chisme-search.md`: the Section 9 template (embedded via `with { type: "file" }`,
   written by `agent install`).
 - [DONE] `src/embedded/vec-extension.ts`: build-time pointer to the embedded extension (null in dev).
+- [DONE] `src/embedded/embedder-assets.ts`: build-time pointer to the embedded onnxruntime-web WASM
+  binary and its mjs loader (null in dev; build.ts rewrites it during compile).
 - [DONE] `src/runtime/vec.ts`: loads `sqlite-vec` (embedded extract first, then node_modules), never
   throws, reports availability.
+- [DONE] `src/runtime/embedder.ts`: `setupEmbedder()` extracts the embedded WASM and calls
+  `configureEmbedder` so a compiled binary embeds on the WASM backend; a no-op in dev. Called by the
+  `search` and `index`/`sync` commands.
 - [DONE] `src/embed.d.ts`: module declarations for `*.md` and `*.bin` file imports.
 - [DONE] `src/cli/args.ts`: `util.parseArgs` wrappers (`parseSearchArgs`, `parseSyncArgs`,
   `parseListArgs`) plus `parseInlineFilters` for `author:`/`date:`/`branch:`/`repo:` (quoted values
@@ -638,11 +655,14 @@ real.
   and `agent install` all work, with `--json` (auto when piped), inline filters, and color/TTY handling.
 - DONE: verified end to end against a real `entire/checkpoints/v1` branch (this repo): index, hybrid
   search (matchType `both`), match-all, FTS crash-input sanitization, `--full` reindex, and a standalone
-  compiled binary that loads the embedded `sqlite-vec` extension (keyword + vector storage; embedder not
-  bundled, so semantic degrades to keyword-only in the pure binary, as expected).
+  compiled binary that loads the embedded `sqlite-vec` extension and the embedded onnxruntime-web WASM
+  embedder (full keyword + vector storage + embeddings, confirmed from a clean dir).
 - DONE: the `server` and `web` Stage 2 stubs (server `/api/health` works over core; web renders a
   placeholder and builds via Vite). All four workspaces typecheck.
+- DONE: the onnxruntime-web embedder spike, integrated. The compiled binary now does full hybrid
+  search standalone (`matchType: "both"` confirmed from a clean dir), so semantic no longer requires
+  the `bun install` path. See Section 11 and the new rows in Section 10.
 - TODO: the real Stage 2 routes (`/api/checkpoints`, `/api/search`, `/api/repos`) and the web UI on top
-  of them, plus the optional onnxruntime-web embedder spike that would unlock semantic search inside the
-  pure binary (Section 11).
+  of them. Optional later: per-OS release smoke test asserting `matchType: "both"`; a `-baseline` /
+  musl matrix; multi-threaded WASM.
 ```

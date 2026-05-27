@@ -4,6 +4,7 @@
 import { syncRepo } from "@chisme/core";
 import { parseSyncArgs } from "../cli/args.ts";
 import { openDb } from "../cli/db.ts";
+import { setupEmbedder } from "../runtime/embedder.ts";
 import { colors } from "../cli/colors.ts";
 
 const HELP = `chisme index [flags]   (alias: chisme sync)
@@ -21,6 +22,7 @@ export async function cmdSync(argv: string[]): Promise<void> {
     return;
   }
 
+  await setupEmbedder();
   const isTty = Boolean(process.stderr.isTTY);
   const { db, vecAvailable, close } = await openDb();
   try {

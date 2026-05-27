@@ -33,5 +33,5 @@ Thumbs.db
 # Local Claude Code settings
 .claude/settings.local.json
 
-# Build artifact: per-platform sqlite-vec extension copied in by apps/cli/build.ts
-apps/cli/src/embedded/vec0.bin
+# Build artifacts copied in by apps/cli/build.ts (sqlite-vec extension, onnxruntime-web WASM)
+apps/cli/src/embedded/*.bin

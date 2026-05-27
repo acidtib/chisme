@@ -4,6 +4,7 @@
 import { search } from "@chisme/core";
 import { parseSearchArgs } from "../cli/args.ts";
 import { openDb } from "../cli/db.ts";
+import { setupEmbedder } from "../runtime/embedder.ts";
 import { printSearchHuman, printSearchJson, shouldUseJson } from "../cli/output.ts";
 
 const HELP = `chisme search [query] [flags]
@@ -30,6 +31,7 @@ export async function cmdSearch(argv: string[]): Promise<void> {
     return;
   }
 
+  await setupEmbedder();
   const useJson = shouldUseJson(args.json);
   const { db, vecAvailable, close } = await openDb();
   try {
