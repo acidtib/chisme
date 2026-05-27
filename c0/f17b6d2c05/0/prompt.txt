@@ -1,0 +1,6 @@
+it 9isjntall failed the ci 
+0s
+Run set -euo pipefail
+dist/chisme-darwin-arm64: invalid signature (code or signature have been modified)
+In architecture: arm64
+Error: Process completed with exit code 1.
