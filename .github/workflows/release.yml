@@ -54,19 +54,21 @@ jobs:
         run: |
           bin="$GITHUB_WORKSPACE/dist/${{ matrix.asset }}"
           "$bin" version
-          # Index this repo's own checkpoints (chisme index fetches the
-          # entire/checkpoints/v1 branch from origin), then assert that semantic
-          # search actually ran and fused with keyword search. A broken embedder
-          # in the binary would produce only "keyword" matches and fail here, so a
+          # Index only the newest few checkpoints so the test stays fast as the
+          # repo's history grows (chisme index fetches entire/checkpoints/v1 from
+          # origin). Then assert the embedded semantic search actually ran: with a
+          # small indexed set, vec KNN returns those checkpoints for any query, so
+          # a working embedder yields a "both" or "semantic" match. A broken one
+          # yields only "keyword" (or nothing) and fails the build, so a semantic
           # regression cannot ship silently. The compact --json has no spaces.
-          "$bin" index
+          "$bin" index --limit 5
           "$bin" search "semantic search" --json > result.json
           cat result.json
-          if ! grep -q '"matchType":"both"' result.json; then
-            echo "::error::smoke test failed for ${{ matrix.asset }}: no 'both' match, the embedded semantic search may be broken"
+          if ! grep -qE '"matchType":"(both|semantic)"' result.json; then
+            echo "::error::smoke test failed for ${{ matrix.asset }}: no semantic match, the embedded embedder may be broken"
             exit 1
           fi
-          echo "ok: hybrid search returned a 'both' (keyword + semantic) match"
+          echo "ok: embedded semantic search returned a semantic/both match"
 
       - uses: actions/upload-artifact@v7
         with:

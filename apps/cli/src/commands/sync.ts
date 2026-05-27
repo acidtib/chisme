@@ -13,6 +13,7 @@ Fetch the latest remote checkpoints and incrementally index this repo.
 
 Flags:
   --full            wipe this repo's rows and reindex from scratch
+  --limit <N>       index only the newest N checkpoints
   --remote <name>   git remote to fetch from (default origin)`;
 
 export async function cmdSync(argv: string[]): Promise<void> {
@@ -32,6 +33,7 @@ export async function cmdSync(argv: string[]): Promise<void> {
       vecAvailable,
       full: args.full,
       remote: args.remote,
+      limit: args.limit,
       onProgress: isTty
         ? (done, total) => process.stderr.write(`\r  indexing ${done}/${total}`)
         : undefined,

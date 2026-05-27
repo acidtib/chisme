@@ -12,7 +12,7 @@ import type {
   RawSession,
   SessionMetadata,
 } from "../types.ts";
-import { listTree, readBlob } from "./repo.ts";
+import { git, listTree, readBlob } from "./repo.ts";
 
 /** Matches a checkpoint directory: a two-hex shard plus the rest of the id. */
 const CHECKPOINT_DIR = /^([0-9a-f]{2})\/([0-9a-f]+)$/;
@@ -31,6 +31,32 @@ export function scanCheckpointIds(root: string, ref: string): string[] {
   for (const entry of listTree(root, ref, "", { recursive: true, dirsOnly: true })) {
     const m = entry.path.match(CHECKPOINT_DIR);
     if (m) ids.push(m[1]! + m[2]!);
+  }
+  return ids;
+}
+
+/** Matches the top-level metadata path a checkpoint commit adds. */
+const TOP_METADATA = /^([0-9a-f]{2})\/([0-9a-f]+)\/metadata\.json$/;
+
+/**
+ * Lists checkpoint ids newest-first. Entire commits each checkpoint as its own
+ * commit that adds `<shard>/<rest>/metadata.json`, so one `git log` over the ref
+ * yields recency order cheaply (no need to read every checkpoint's metadata).
+ * Used by `index --limit N` to index only the most recent checkpoints.
+ */
+export function scanCheckpointIdsByRecency(root: string, ref: string): string[] {
+  const r = git(root, ["log", ref, "--diff-filter=A", "--name-only", "--format="]);
+  if (!r.ok) return [];
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const line of r.stdout.split("\n")) {
+    const m = line.match(TOP_METADATA);
+    if (!m) continue;
+    const id = m[1]! + m[2]!;
+    if (!seen.has(id)) {
+      seen.add(id);
+      ids.push(id);
+    }
   }
   return ids;
 }

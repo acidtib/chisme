@@ -259,7 +259,9 @@ Notes:
 4. Scan ids fast. `git ls-tree <ref>` over the two-hex shard prefixes (`00`..`ff`), collect
    `<shard>/<rest>` to checkpoint ids. Mirror the POC's `scanCheckpointIds`.
 5. Diff against `SELECT checkpoint_id FROM checkpoints WHERE repo_id=?`. Only process new ids
-   (incremental). Provide a `--full` flag to wipe this repo's rows and reindex.
+   (incremental). Provide a `--full` flag to wipe this repo's rows and reindex, and a `--limit N` flag
+   to index only the newest N checkpoints. Recency order comes from one `git log` over the ref
+   (`scanCheckpointIdsByRecency`): Entire commits each checkpoint as its own commit, newest first.
 6. For each new checkpoint: read top `metadata.json`; enumerate numeric session dirs; read each
    session's `metadata.json`, `prompt.txt`, and `full.jsonl`; reverse-lookup the commit; fetch commit
    info and `git diff` numstat for additions and deletions; build `transcript_text`, `prompt`,
@@ -320,6 +322,7 @@ Commands:
   index               Fetch latest remote checkpoints and (re)build the local index.
   sync                Alias for index.
                         --full        wipe this repo's rows and reindex
+                        --limit <N>   index only the newest N checkpoints
   status              Show index and current-repo state (counts, last sync, vec and model availability).
   list                List recent checkpoints from the index.   --repo, --limit
   agent install       Write the Claude Code search subagent (.claude/agents/chisme-search.md).
@@ -455,9 +458,10 @@ The workflow runs on a `v*` tag (and `workflow_dispatch`). Each matrix job:
   `chisme-windows-x64.exe`. (The retired `macos-13` Intel runner was replaced by `macos-15-intel`.)
 - `bun install --frozen-lockfile` (installs that host's native `sqlite-vec`), then `bun run build:cli`
   (native build; `build.ts` embeds the extension and injects `BUILD_VERSION`), then a smoke test: the
-  binary runs `version`, indexes this repo's own checkpoints (`chisme index` fetches
-  `entire/checkpoints/v1` from origin), and `chisme search --json` must return a `matchType: "both"`
-  result, so a broken embedded embedder fails the release instead of shipping.
+  binary runs `version`, indexes this repo's newest few checkpoints (`chisme index --limit 5`, which
+  fetches `entire/checkpoints/v1` from origin), and `chisme search --json` must return a `both` or
+  `semantic` match, so a broken embedded embedder fails the release instead of shipping. The `--limit`
+  keeps the test fast as the checkpoint history grows.
 - uploads the binary as an artifact.
 
 A final `release` job downloads all artifacts, writes `SHA256SUMS` (`sha256sum chisme-*`), and
@@ -516,6 +520,7 @@ Status keys: DONE means written, TODO means not started.
   `resolveCheckpointsRef`, `listTree(ref,path)`, `readBlob(ref,path)`, `findCommitByCheckpointId`,
   `getCommitInfo`, `getDiffStats(sha)`.
 - [DONE] `src/git/checkpoints.ts`: `scanCheckpointIds(root, ref)` (one recursive `ls-tree -d`),
+  `scanCheckpointIdsByRecency(root, ref)` (one `git log`, newest-first, for `--limit`),
   `readCheckpoint(root, ref, id)` to `RawCheckpoint` (top metadata plus enumerated sessions plus
   transcripts plus prompt). Sessions enumerated from git, not the `sessions[]` array.
 - [DONE] `src/parser/transcript.ts`: `extractPlainText(jsonl)` (handles nested `tool_result` blocks),
@@ -671,8 +676,9 @@ real.
 - DONE: the onnxruntime-web embedder spike, integrated. The compiled binary now does full hybrid
   search standalone (`matchType: "both"` confirmed from a clean dir), so semantic no longer requires
   the `bun install` path. See Section 11 and the new rows in Section 10.
-- DONE: the per-OS release smoke test asserts `matchType: "both"` (indexes this repo and searches), so
-  a broken embedded embedder fails the release.
+- DONE: the per-OS release smoke test asserts a `both`/`semantic` match (indexes this repo's newest few
+  checkpoints via `index --limit 5`, then searches), so a broken embedded embedder fails the release.
+  `index --limit N` (newest N, recency from `git log`) keeps the test fast as history grows.
 - TODO: the web UI on top of the server routes. Optional later: a `-baseline` / musl matrix;
   multi-threaded WASM. A future additive change can
   split per-session/message tables so `/api/checkpoints/:id` returns structured sessions rather than

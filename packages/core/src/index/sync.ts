@@ -18,7 +18,7 @@ import {
   repoSlug,
   resolveCheckpointsRef,
 } from "../git/repo.ts";
-import { readCheckpoint, scanCheckpointIds } from "../git/checkpoints.ts";
+import { readCheckpoint, scanCheckpointIds, scanCheckpointIdsByRecency } from "../git/checkpoints.ts";
 import { extractPlainText } from "../parser/transcript.ts";
 import { upsertRepo, setLastSync } from "../db/repos.ts";
 import { clearRepo, knownCheckpointIds, upsertCheckpoint, type CheckpointInput } from "../db/checkpoints.ts";
@@ -30,6 +30,8 @@ export interface SyncOptions {
   vecAvailable: boolean;
   full?: boolean;
   remote?: string;
+  /** Index only the newest N checkpoints (by branch commit recency). */
+  limit?: number;
   /** Attempt embeddings when vec storage is available (default true). */
   embeddings?: boolean;
   onProgress?: (done: number, total: number) => void;
@@ -133,10 +135,12 @@ export async function syncRepo(opts: SyncOptions): Promise<SyncResult> {
     };
   }
 
-  const ids = scanCheckpointIds(root, ref);
+  // Recency order only when limiting (newest N); otherwise the cheaper tree scan.
+  const ids = opts.limit != null ? scanCheckpointIdsByRecency(root, ref) : scanCheckpointIds(root, ref);
   if (opts.full) clearRepo(opts.db, repo.id, opts.vecAvailable);
   const known = opts.full ? new Set<string>() : knownCheckpointIds(opts.db, repo.id);
-  const newIds = ids.filter((id) => !known.has(id));
+  let newIds = ids.filter((id) => !known.has(id));
+  if (opts.limit != null) newIds = newIds.slice(0, opts.limit);
 
   const tryEmbed = opts.vecAvailable && opts.embeddings !== false;
   let synced = 0;

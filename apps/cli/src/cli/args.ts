@@ -91,6 +91,7 @@ export function parseSearchArgs(argv: string[]): SearchArgs {
 export interface SyncArgs {
   full: boolean;
   remote: string;
+  limit?: number;
   help: boolean;
 }
 
@@ -101,12 +102,15 @@ export function parseSyncArgs(argv: string[]): SyncArgs {
     options: {
       full: { type: "boolean" },
       remote: { type: "string" },
+      limit: { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });
+  const limit = values.limit != null ? Number.parseInt(values.limit, 10) : undefined;
   return {
     full: Boolean(values.full),
     remote: values.remote ?? "origin",
+    limit: limit != null && Number.isFinite(limit) && limit > 0 ? limit : undefined,
     help: Boolean(values.help),
   };
 }
