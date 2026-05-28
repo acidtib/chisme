@@ -15,7 +15,7 @@ Flags:
   --author <name>     filter by commit author
   --branch <name>     filter by branch
   --date <week|month> recency window
-  --repo <owner/repo> scope to a repo; '*' = all indexed repos
+  --repo <owner/repo> scope to a repo ('*' = all; omitted = current repo)
   --no-semantic       keyword-only, even if semantic is available
 
 Inline filters also work in the query: author:, date:, branch:, repo:

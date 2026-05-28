@@ -22,7 +22,7 @@ Usage: chisme <command> [options]
 
 Commands:
   search [query]    Search indexed checkpoints (hybrid local search)
-  sync              Fetch latest checkpoints and rebuild the local index
+  sync              Fetch latest checkpoints and update the local index
   status            Show index and environment status
   list              List recent checkpoints
   agent install     Write a chisme-search subagent (claude, codex, gemini, cursor, pi, all)
