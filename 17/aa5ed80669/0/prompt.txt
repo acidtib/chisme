@@ -1,0 +1,11 @@
+<task-notification>
+<task-id>b3sstnpzr</task-id>
+<tool-use-id>toolu_017TSNLgpswr2gV57TTu4rJB</tool-use-id>
+<output-file>/tmp/claude-1000/-home-acidtib-Code-entire-chisme/5aab98c1-e5d2-47a1-8b01-81907f2c0e5b/tasks/b3sstnpzr.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for release run to complete" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+lets do a review of the code comments in the codebase they seems summary style like an ai wrote them

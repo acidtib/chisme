@@ -1,0 +1,56 @@
+{
+  "cli_version": "0.6.3",
+  "checkpoint_id": "17aa5ed80669",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "apps/cli/install.ts",
+    "apps/cli/src/cli/args.ts",
+    "apps/cli/src/cli/colors.ts",
+    "apps/cli/src/cli/db.ts",
+    "apps/cli/src/cli/output.ts",
+    "apps/cli/src/commands/agent.ts",
+    "apps/cli/src/commands/list.ts",
+    "apps/cli/src/commands/search.ts",
+    "apps/cli/src/commands/status.ts",
+    "apps/cli/src/commands/sync.ts",
+    "apps/cli/src/embedded/embedder-assets.ts",
+    "apps/cli/src/embedded/sqlite-lib.ts",
+    "apps/cli/src/embedded/vec-extension.ts",
+    "apps/cli/src/main.ts",
+    "apps/cli/src/runtime/embedder.ts",
+    "apps/cli/src/runtime/sqlite.ts",
+    "apps/cli/src/runtime/vec.ts",
+    "apps/server/src/main.ts",
+    "packages/core/src/config/paths.ts",
+    "packages/core/src/db/checkpoints.ts",
+    "packages/core/src/db/database.ts",
+    "packages/core/src/db/repos.ts",
+    "packages/core/src/db/schema.ts",
+    "packages/core/src/embeddings/embedder.ts",
+    "packages/core/src/git/checkpoints.ts",
+    "packages/core/src/git/repo.ts",
+    "packages/core/src/index.ts",
+    "packages/core/src/index/sync.ts",
+    "packages/core/src/parser/transcript.ts",
+    "packages/core/src/search/fts.ts",
+    "packages/core/src/search/search.ts",
+    "packages/core/src/types.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/17/aa5ed80669/0/metadata.json",
+      "transcript": "/17/aa5ed80669/0/full.jsonl",
+      "content_hash": "/17/aa5ed80669/0/content_hash.txt",
+      "prompt": "/17/aa5ed80669/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 106,
+    "cache_creation_tokens": 144800,
+    "cache_read_tokens": 11968567,
+    "output_tokens": 77044,
+    "api_call_count": 53
+  }
+}

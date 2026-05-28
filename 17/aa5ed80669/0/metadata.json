@@ -1,0 +1,86 @@
+{
+  "cli_version": "0.6.3",
+  "checkpoint_id": "17aa5ed80669",
+  "session_id": "97d9aa00-a9ef-4561-8fc3-dc7975f06a2b",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-28T03:51:55.196475498Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "apps/cli/install.ts",
+    "apps/cli/src/cli/args.ts",
+    "apps/cli/src/cli/colors.ts",
+    "apps/cli/src/cli/db.ts",
+    "apps/cli/src/cli/output.ts",
+    "apps/cli/src/commands/agent.ts",
+    "apps/cli/src/commands/list.ts",
+    "apps/cli/src/commands/search.ts",
+    "apps/cli/src/commands/status.ts",
+    "apps/cli/src/commands/sync.ts",
+    "apps/cli/src/embedded/embedder-assets.ts",
+    "apps/cli/src/embedded/sqlite-lib.ts",
+    "apps/cli/src/embedded/vec-extension.ts",
+    "apps/cli/src/main.ts",
+    "apps/cli/src/runtime/embedder.ts",
+    "apps/cli/src/runtime/sqlite.ts",
+    "apps/cli/src/runtime/vec.ts",
+    "apps/server/src/main.ts",
+    "packages/core/src/config/paths.ts",
+    "packages/core/src/db/checkpoints.ts",
+    "packages/core/src/db/database.ts",
+    "packages/core/src/db/repos.ts",
+    "packages/core/src/db/schema.ts",
+    "packages/core/src/embeddings/embedder.ts",
+    "packages/core/src/git/checkpoints.ts",
+    "packages/core/src/git/repo.ts",
+    "packages/core/src/index.ts",
+    "packages/core/src/index/sync.ts",
+    "packages/core/src/parser/transcript.ts",
+    "packages/core/src/search/fts.ts",
+    "packages/core/src/search/search.ts",
+    "packages/core/src/types.ts"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "a88f0ee810b1",
+  "checkpoint_transcript_start": 1302,
+  "transcript_lines_at_start": 1302,
+  "token_usage": {
+    "input_tokens": 106,
+    "cache_creation_tokens": 144800,
+    "cache_read_tokens": 11968567,
+    "output_tokens": 77044,
+    "api_call_count": 53
+  },
+  "session_metrics": {
+    "turn_count": 33
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-28T03:51:55.094679086Z",
+    "agent_lines": 95,
+    "agent_removed": 273,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 95,
+    "total_lines_changed": 368,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 95,
+      "agent_lines_removed": 273
+    }
+  ]
+}
