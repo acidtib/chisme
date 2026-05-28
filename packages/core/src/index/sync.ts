@@ -145,7 +145,7 @@ export async function syncRepo(opts: SyncOptions): Promise<SyncResult> {
   const started = Date.now();
   const remote = opts.remote ?? "origin";
   const root = gitRoot(opts.cwd);
-  if (!root) throw new Error("not a git repository (run chisme index from inside a repo)");
+  if (!root) throw new Error("not a git repository (run chisme sync from inside a repo)");
 
   const { slug, remoteUrl } = repoSlug(root, remote);
   const repo = upsertRepo(opts.db, slug, remoteUrl, root);
