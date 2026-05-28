@@ -1,6 +1,6 @@
 {
   "name": "@chisme/server",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "private": true,
   "description": "HTTP API over @chisme/core. Stage 2, stub for now.",
