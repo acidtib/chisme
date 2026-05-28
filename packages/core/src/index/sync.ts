@@ -1,10 +1,7 @@
 /**
- * Team-aware incremental indexing of one repo's checkpoints (PLAN.md Section 6).
- *
- * Resolves the repo identity, fetches teammates' checkpoints (best effort),
- * resolves the ref to read, scans checkpoint ids, diffs against what is already
- * indexed, and indexes only the new ones. `full` wipes the repo's rows first.
- * Embeddings are attempted only when vec storage is available; failure to embed a
+ * Incremental, team-aware indexing of one repo's checkpoints (PLAN.md Section 6).
+ * Indexes only ids not already present; `full` wipes the repo's rows first.
+ * Embeddings are attempted only when vec storage is available; failing to embed a
  * checkpoint degrades it to keyword-only without failing the sync.
  */
 import type { Database } from "bun:sqlite";
@@ -81,7 +78,6 @@ export interface SyncResult {
   timings: SyncTimings;
 }
 
-/** Normalizes a timestamp to ISO, or returns null when unparseable. */
 function normalizeDate(raw: string | undefined | null): string | null {
   if (!raw) return null;
   const t = Date.parse(raw);
@@ -96,7 +92,6 @@ function embedText(input: CheckpointInput): string {
     .slice(0, 1500);
 }
 
-/** Builds a checkpoint row from raw git data plus the linked commit, if any. */
 function buildInput(
   root: string,
   repoId: number,

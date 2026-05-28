@@ -1,11 +1,8 @@
 /**
- * Wires up the WASM embedder backend when running as a compiled binary.
- *
- * In dev this is a no-op: `embedderAssets` is null and the embedder uses the
- * native onnxruntime-node backend. In a compiled binary, we extract the embedded
- * onnxruntime-web WASM binary and its mjs loader to the data dir, then tell core's
- * embedder to force the WASM backend and load from those paths. Never throws; on
- * failure the embedder simply stays unavailable and search degrades to keyword.
+ * In dev this is a no-op (`embedderAssets` is null, the native onnxruntime-node
+ * backend is used). In a compiled binary we extract the embedded onnxruntime-web WASM
+ * and its mjs loader to the data dir, then force core's embedder onto the WASM backend
+ * at those paths. Never throws; on failure the embedder stays unavailable.
  */
 import { join } from "node:path";
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";

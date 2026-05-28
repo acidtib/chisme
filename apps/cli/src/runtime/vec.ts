@@ -1,10 +1,7 @@
 /**
- * Loads the sqlite-vec extension into a bun:sqlite database.
- *
- * Tries the binary-embedded copy first (compiled builds), then falls back to the
- * node_modules copy (dev / `bun install`). Never throws: if neither works, the
- * caller runs keyword-only. The explicit `sqlite3_vec_init` entry point makes the
- * load independent of the extracted file name.
+ * Tries the binary-embedded copy first (compiled builds), then the node_modules copy
+ * (dev). Never throws: if neither works, the caller runs keyword-only. The explicit
+ * `sqlite3_vec_init` entry point makes the load independent of the extracted file name.
  */
 import type { Database } from "bun:sqlite";
 import { join } from "node:path";

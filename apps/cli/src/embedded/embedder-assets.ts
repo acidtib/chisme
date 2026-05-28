@@ -1,12 +1,8 @@
 /**
- * Points at the onnxruntime-web WASM assets embedded into a compiled binary.
- *
- * In dev (and when assets are unavailable) this is null, and the embedder uses the
- * native onnxruntime-node backend resolved from node_modules instead.
- *
- * `apps/cli/build.ts` overwrites this file during `bun build --compile` to embed
- * the WASM binary and its mjs loader via `import ... with { type: "file" }`, then
- * restores this placeholder afterwards. The WASM is platform-independent, so it is
- * embedded for every target. Do not commit the embedding variant.
+ * Points at the onnxruntime-web WASM assets embedded into a compiled binary; null in
+ * dev (the native onnxruntime-node backend is used instead). `apps/cli/build.ts`
+ * overwrites this file during `bun build --compile` to embed the WASM and its mjs
+ * loader via `import ... with { type: "file" }` (platform-independent, every target),
+ * then restores this placeholder. Do not commit the embedding variant.
  */
 export const embedderAssets: { wasm: string; loader: string } | null = null;

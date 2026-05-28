@@ -1,16 +1,12 @@
 /**
- * Resolves where chisme stores its global, multi-repo index.
- *
- * Uses each OS's native convention: `~/Library/Application Support` and
- * `~/Library/Caches` on macOS, `%APPDATA%` on Windows, and the XDG Base Directory
- * spec on Linux. `CHISME_DATA_DIR` overrides the data dir everywhere (tests and
- * power users); XDG vars are honored on Linux only.
+ * Each OS's native convention: `~/Library/Application Support` and `~/Library/Caches`
+ * on macOS, `%APPDATA%` on Windows, XDG on Linux. `CHISME_DATA_DIR` overrides the data
+ * dir everywhere (tests and power users); XDG vars are honored on Linux only.
  */
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { mkdirSync } from "node:fs";
 
-/** Root directory for chisme's persistent data (the SQLite index lives here). */
 export function dataDir(): string {
   const override = process.env.CHISME_DATA_DIR;
   if (override) return override;
@@ -24,18 +20,15 @@ export function dataDir(): string {
     return join(appData, "chisme");
   }
 
-  // Linux and other unix: XDG.
   const xdg = process.env.XDG_DATA_HOME;
   if (xdg) return join(xdg, "chisme");
   return join(homedir(), ".local", "share", "chisme");
 }
 
-/** Absolute path to the global index database. */
 export function databasePath(): string {
   return join(dataDir(), "chisme.db");
 }
 
-/** Directory transformers.js uses to cache downloaded embedding models. */
 export function modelCacheDir(): string {
   if (process.platform === "darwin") {
     return join(homedir(), "Library", "Caches", "chisme", "models");
@@ -48,7 +41,6 @@ export function modelCacheDir(): string {
   return join(base, "models");
 }
 
-/** Ensures the data directory exists and returns it. */
 export function ensureDataDir(): string {
   const dir = dataDir();
   mkdirSync(dir, { recursive: true });

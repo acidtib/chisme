@@ -1,10 +1,7 @@
 /**
- * SQLite schema and migrations for the global multi-repo index.
- *
- * The base schema (meta, repos, checkpoints, FTS5) is always created. The vec0
- * virtual table is created only when sqlite-vec loaded, since it depends on the
- * extension. Migrations are keyed on `meta.schema_version`; bump SCHEMA_VERSION
- * and add a case to `migrate` when the shape changes.
+ * The base schema (meta, repos, checkpoints, FTS5) is always created; the vec0
+ * virtual table only when sqlite-vec loaded. Migrations key on `meta.schema_version`:
+ * bump SCHEMA_VERSION and handle it in `applySchema` when the shape changes.
  */
 import type { Database } from "bun:sqlite";
 
@@ -84,10 +81,7 @@ function currentVersion(db: Database): number {
   }
 }
 
-/**
- * Creates the schema and runs any pending migrations. Idempotent: safe to call on
- * every open. `vecAvailable` controls whether the vec0 table is created.
- */
+/** Idempotent: safe to call on every open. `vecAvailable` gates the vec0 table. */
 export function applySchema(db: Database, vecAvailable: boolean): void {
   db.exec(BASE_SCHEMA);
   if (vecAvailable) db.exec(VEC_SCHEMA);

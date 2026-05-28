@@ -1,9 +1,7 @@
 /**
- * Installs the compiled chisme binary onto the user's PATH.
- *
- * Run after `bun run build:cli` (the root `install:cli` script chains them). Copies
- * the repo-root binary to `$CHISME_INSTALL_DIR` (default `~/.local/bin`) and makes
- * it executable, then prints PATH guidance if that directory is not on PATH.
+ * Run after `bun run build:cli` (the root `install:cli` chains them): copies the
+ * repo-root binary to `$CHISME_INSTALL_DIR` (default `~/.local/bin`), marks it
+ * executable, and prints PATH guidance if that dir is not on PATH.
  */
 import { homedir } from "node:os";
 import { join, resolve, delimiter } from "node:path";

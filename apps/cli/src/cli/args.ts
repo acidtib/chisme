@@ -1,10 +1,7 @@
 /**
- * Argument parsing for the chisme CLI.
- *
- * Wraps Node's built-in `util.parseArgs` (available in Bun) and adds the inline
- * filter parser: `author:`, `date:`, `branch:`, and `repo:` embedded in the query
- * string, with optional quoted values. Explicit flags take precedence over inline
- * filters when both are present.
+ * Wraps Node's `util.parseArgs` (available in Bun) and adds the inline filter parser:
+ * `author:`, `date:`, `branch:`, `repo:` embedded in the query string, with optional
+ * quoted values. Explicit flags take precedence over inline filters.
  */
 import { parseArgs } from "node:util";
 

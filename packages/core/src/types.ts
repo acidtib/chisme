@@ -1,12 +1,9 @@
 /**
- * Data model for chisme.
- *
- * These types mirror the on-disk layout that Entire-compatible tooling writes to
- * the `entire/checkpoints/v1` git branch. chisme only ever *reads* this data; it
- * never captures sessions or writes to that branch.
+ * These types mirror the on-disk layout Entire-compatible tooling writes to the
+ * `entire/checkpoints/v1` git branch. chisme only ever reads it: it never captures
+ * sessions or writes to that branch.
  */
 
-/** A repository known to the local index, identified by its `owner/repo` slug. */
 export interface RepoRecord {
   id: number;
   /** `owner/repo`, derived from the git remote URL. */
@@ -86,7 +83,6 @@ export interface RawSession {
   metadata: SessionMetadata;
   /** Raw JSONL transcript text (may be empty if unavailable). */
   transcriptJsonl: string;
-  /** The user prompt(s) that opened the session. */
   prompt: string;
 }
 

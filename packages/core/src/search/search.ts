@@ -108,7 +108,6 @@ function toResult(
   };
 }
 
-/** Resolves the repo scope into a concrete repo-id filter plus a description. */
 function resolveScope(opts: SearchOptions): {
   repoIds: Set<number> | null;
   scope: string;
@@ -168,7 +167,6 @@ function semanticCandidates(db: Database, vector: Float32Array): Candidate[] {
   return rows.map((r) => ({ pk: r.pk, distance: r.distance }));
 }
 
-/** Match-all path: most recent checkpoints matching the structured filters. */
 function searchMatchAll(
   db: Database,
   filters: Filters,

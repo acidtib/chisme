@@ -1,11 +1,5 @@
 #!/usr/bin/env bun
-/**
- * chisme CLI entry point and command dispatch.
- *
- * An Entire companion CLI: local search over the AI coding sessions Entire captures.
- * Keyword search always works; semantic search is enabled when sqlite-vec and the
- * embedding model are available, and degrades gracefully otherwise.
- */
+/** chisme CLI entry point and command dispatch. */
 import { Database } from "bun:sqlite";
 import { isEmbedderInstalled } from "@chisme/core";
 import { loadVecExtension } from "./runtime/vec.ts";

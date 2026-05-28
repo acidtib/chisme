@@ -1,15 +1,12 @@
 /**
- * Thin wrapper over the `git` CLI for reading checkpoint data without a checkout.
- *
- * Every function shells out to `git -C <root> ...`. Reads are done with `ls-tree`
- * and `show <ref>:<path>` so chisme never touches the working tree and never
- * writes to the `entire/checkpoints/v1` branch. Functions return `null` (or an
- * empty result) on failure rather than throwing, so callers can degrade.
+ * Every function shells out to `git -C <root> ...`, reading via `ls-tree` and
+ * `show <ref>:<path>`, so chisme never touches the working tree or writes to the
+ * `entire/checkpoints/v1` branch. Functions return null (or empty) on failure
+ * rather than throwing, so callers degrade.
  */
 import { basename } from "node:path";
 import type { CommitInfo, DiffStats } from "../types.ts";
 
-/** The git branch Entire-compatible tooling writes checkpoints to. */
 export const CHECKPOINTS_BRANCH = "entire/checkpoints/v1";
 
 /** ASCII unit separator, used to split `git --format` fields safely. */
@@ -22,7 +19,6 @@ interface ExecResult {
   ok: boolean;
 }
 
-/** Runs `git -C <root> <args...>` synchronously and captures its output. */
 export function git(root: string, args: string[]): ExecResult {
   const proc = Bun.spawnSync(["git", "-C", root, ...args], {
     stdout: "pipe",
@@ -36,13 +32,11 @@ export function git(root: string, args: string[]): ExecResult {
   };
 }
 
-/** Resolves the repository root for a working directory, or null if not a repo. */
 export function gitRoot(cwd: string): string | null {
   const r = git(cwd, ["rev-parse", "--show-toplevel"]);
   return r.ok ? r.stdout.trim() : null;
 }
 
-/** Reads `remote.<name>.url`, defaulting to `origin`. */
 export function remoteUrl(root: string, remote = "origin"): string | null {
   const r = git(root, ["config", "--get", `remote.${remote}.url`]);
   const url = r.stdout.trim();
@@ -50,9 +44,8 @@ export function remoteUrl(root: string, remote = "origin"): string | null {
 }
 
 /**
- * Derives an `owner/repo` slug from a git remote URL, host-agnostic.
- * Handles `git@host:owner/repo.git` and `https://host/owner/repo(.git)`.
- * Returns null when the URL has fewer than two path segments.
+ * Handles `git@host:owner/repo.git` and `https://host/owner/repo(.git)`. Null when
+ * the URL has fewer than two path segments.
  */
 export function slugFromRemoteUrl(url: string): string | null {
   let path = url.trim();
@@ -72,10 +65,7 @@ export function slugFromRemoteUrl(url: string): string | null {
   return segments.slice(-2).join("/");
 }
 
-/**
- * The slug chisme indexes a repo under: `owner/repo` from the remote, or
- * `local/<dirname>` when there is no usable remote.
- */
+/** `owner/repo` from the remote, or `local/<dirname>` when there is no usable remote. */
 export function repoSlug(
   root: string,
   remote = "origin",
@@ -85,24 +75,17 @@ export function repoSlug(
   return { slug: slug ?? `local/${basename(root)}`, remoteUrl: url };
 }
 
-/** Returns true if a ref resolves (exists). */
 export function refExists(root: string, ref: string): boolean {
   return git(root, ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`]).ok;
 }
 
-/**
- * Best-effort fetch of teammates' checkpoints into a tracking ref. Returns true
- * on success; failure (offline, no remote, branch missing) is non-fatal.
- */
+/** Best-effort: failure (offline, no remote, branch missing) is non-fatal. */
 export function fetchCheckpoints(root: string, remote = "origin"): boolean {
   const refspec = `+${CHECKPOINTS_BRANCH}:refs/remotes/${remote}/${CHECKPOINTS_BRANCH}`;
   return git(root, ["fetch", "--quiet", remote, refspec]).ok;
 }
 
-/**
- * Resolves which ref to read checkpoints from, in priority order: the remote
- * tracking ref, the local branch, then FETCH_HEAD. Returns null if none exist.
- */
+/** Priority order: remote tracking ref, local branch, then FETCH_HEAD. Null if none exist. */
 export function resolveCheckpointsRef(root: string, remote = "origin"): string | null {
   const candidates = [
     `refs/remotes/${remote}/${CHECKPOINTS_BRANCH}`,
@@ -119,11 +102,9 @@ export interface TreeEntry {
   mode: string;
   type: "blob" | "tree" | "commit";
   sha: string;
-  /** Path relative to the repo root, as printed by `git ls-tree`. */
   path: string;
 }
 
-/** Lists a tree at `<ref>:<path>`. With `recursive`, descends; with `dirsOnly`, only trees. */
 export function listTree(
   root: string,
   ref: string,
@@ -155,7 +136,6 @@ export function listTree(
   return entries;
 }
 
-/** Reads a blob at `<ref>:<path>`, or null if it does not exist. */
 export function readBlob(root: string, ref: string, path: string): string | null {
   const r = git(root, ["show", `${ref}:${path}`]);
   return r.ok ? r.stdout : null;
@@ -197,14 +177,13 @@ export function catFileBatch(root: string, shas: string[]): Map<string, string> 
   return out;
 }
 
-/** Reverse lookup: the commit whose message carries this checkpoint's trailer. */
+/** The commit whose message carries this checkpoint's `Entire-Checkpoint` trailer. */
 export function findCommitByCheckpointId(root: string, id: string): string | null {
   const r = git(root, ["log", "--all", "--grep", `Entire-Checkpoint: ${id}`, "--format=%H", "-1"]);
   const sha = r.stdout.trim();
   return r.ok && sha ? sha : null;
 }
 
-/** Commit metadata for a sha, or null if the sha is unknown. */
 export function getCommitInfo(root: string, sha: string): CommitInfo | null {
   const fmt = ["%H", "%s", "%an", "%ae", "%aI"].join(FS);
   const r = git(root, ["show", "-s", `--format=${fmt}`, sha]);
@@ -259,7 +238,7 @@ export function buildCheckpointCommitMap(root: string): Map<string, CommitInfo> 
   return map;
 }
 
-/** Sums additions and deletions across a commit's diff (binary files count as 0). */
+/** Binary files count as 0. */
 export function getDiffStats(root: string, sha: string): DiffStats {
   const r = git(root, ["show", "--numstat", "--format=", sha]);
   let additions = 0;

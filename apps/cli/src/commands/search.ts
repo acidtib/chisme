@@ -1,6 +1,3 @@
-/**
- * `chisme search [query] [flags]` - hybrid local search over indexed checkpoints.
- */
 import { search } from "@chisme/core";
 import { parseSearchArgs } from "../cli/args.ts";
 import { openDb } from "../cli/db.ts";

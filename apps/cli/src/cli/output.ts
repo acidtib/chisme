@@ -1,13 +1,10 @@
 /**
- * Rendering for the CLI: a compact human table and machine JSON.
- *
- * When stdout is not a TTY we default to JSON, so pipes and the search subagent
- * always receive structured output without needing `--json`.
+ * When stdout is not a TTY we default to JSON, so pipes and the search subagent get
+ * structured output without `--json`.
  */
 import type { SearchResponse, SearchInfo, StoredCheckpoint } from "@chisme/core";
 import { colors } from "./colors.ts";
 
-/** JSON output is forced by `--json` or whenever stdout is not a terminal. */
 export function shouldUseJson(flagJson: boolean): boolean {
   return flagJson || !process.stdout.isTTY;
 }

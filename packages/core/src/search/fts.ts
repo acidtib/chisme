@@ -9,7 +9,6 @@
  * joined with spaces, which FTS5 reads as implicit AND.
  */
 
-/** Builds a safe MATCH string, or "" when the input has no usable terms. */
 export function sanitizeFtsQuery(input: string): string {
   const tokens = input.trim().split(/\s+/).filter(Boolean);
   const quoted: string[] = [];

@@ -1,6 +1,3 @@
-/**
- * `chisme list [flags]` - show recent checkpoints from the index.
- */
 import { recentCheckpoints, getRepoBySlug } from "@chisme/core";
 import { parseListArgs } from "../cli/args.ts";
 import { openDb } from "../cli/db.ts";

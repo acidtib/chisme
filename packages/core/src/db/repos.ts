@@ -1,7 +1,4 @@
-/**
- * CRUD for the `repos` table. Each repo is keyed by its `owner/repo` slug (or
- * `local/<dirname>` when there is no remote), so the index is multi-repo.
- */
+/** The `repos` table, keyed by `owner/repo` slug (or `local/<dirname>`), so the index is multi-repo. */
 import type { Database } from "bun:sqlite";
 import type { RepoRecord } from "../types.ts";
 
@@ -23,7 +20,6 @@ function toRecord(row: RepoRow): RepoRecord {
   };
 }
 
-/** Inserts or updates a repo by slug, returning the stored record. */
 export function upsertRepo(
   db: Database,
   slug: string,

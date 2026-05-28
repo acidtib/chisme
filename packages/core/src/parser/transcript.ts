@@ -1,10 +1,8 @@
 /**
- * Turns a session's JSONL transcript into a single plain-text blob for indexing.
- *
- * Lines are JSON objects tagged with a `type`. We extract human-readable text from
- * the message types that carry it (`user`, `assistant`, `tool_result`) and ignore
- * the bookkeeping types (permission-mode, file-history-snapshot, attachment, ...).
- * Anything malformed is skipped; the goal is best-effort recall, not fidelity.
+ * Flattens a session's JSONL transcript into one plain-text blob for FTS indexing.
+ * We pull text from the message types that carry it (`user`, `assistant`,
+ * `tool_result`) and ignore bookkeeping types (permission-mode, file-history-snapshot,
+ * attachment, ...). Malformed lines are skipped: best-effort recall, not fidelity.
  */
 
 interface ContentBlock {
@@ -24,7 +22,6 @@ interface TranscriptLine {
   };
 }
 
-/** Flattens a tool_use input object into a compact string of its values. */
 function stringifyInput(input: unknown): string {
   if (input == null) return "";
   if (typeof input === "string") return input;
@@ -35,7 +32,6 @@ function stringifyInput(input: unknown): string {
   }
 }
 
-/** Extracts text from a content value that may be a string or an array of blocks. */
 function textFromContent(content: string | ContentBlock[] | undefined, out: string[]): void {
   if (typeof content === "string") {
     if (content.trim()) out.push(content);
@@ -64,10 +60,6 @@ function textFromContent(content: string | ContentBlock[] | undefined, out: stri
   }
 }
 
-/**
- * Concatenates user text, assistant text/thinking/tool inputs, and tool results
- * from a JSONL transcript into one string suitable for FTS indexing.
- */
 export function extractPlainText(jsonl: string): string {
   const out: string[] = [];
   for (const line of jsonl.split("\n")) {
@@ -96,7 +88,6 @@ export interface TranscriptStats {
   toolUses: number;
 }
 
-/** Counts message and tool-use activity in a transcript. */
 export function analyze(jsonl: string): TranscriptStats {
   const stats: TranscriptStats = {
     messages: 0,

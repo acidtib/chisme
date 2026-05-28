@@ -1,11 +1,8 @@
 /**
- * Opens the chisme index database and wires up optional semantic search.
- *
- * Keyword search (FTS5) is built into bun:sqlite and always works. The sqlite-vec
- * extension is loaded through a caller-supplied `vecLoader` so the binary (which
- * embeds the extension) and dev (node_modules) can differ. If no loader is given,
- * or it fails, we fall back to resolving the extension from node_modules; if that
- * also fails we run keyword-only. Loading never throws out of here.
+ * Keyword search (FTS5) is built into bun:sqlite and always works. sqlite-vec loads
+ * through a caller-supplied `vecLoader` so the compiled binary (embedded extension)
+ * and dev (node_modules) can differ; if none is given or it fails, we fall back to
+ * node_modules, and if that also fails we run keyword-only. Loading never throws here.
  */
 import { Database } from "bun:sqlite";
 import { databasePath, ensureDataDir } from "../config/paths.ts";
@@ -29,7 +26,6 @@ export interface ChismeDb {
   close(): void;
 }
 
-/** Default loader: resolve the extension from node_modules (dev / `bun install`). */
 async function defaultVecLoader(db: Database): Promise<boolean> {
   try {
     const { getLoadablePath } = await import("sqlite-vec");

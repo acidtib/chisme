@@ -1,14 +1,7 @@
 /**
- * `chisme agent install <agent>` - write the chisme-search subagent.
- *
  * Mirrors the search subagents Entire ships, adapted to call `chisme search --json`
- * against the local index. One template per supported tool, each shipped embedded
- * in the binary via `with { type: "file" }`:
- *   claude -> .claude/agents/chisme-search.md
- *   codex  -> .codex/agents/chisme-search.toml
- *   gemini -> .gemini/agents/chisme-search.md
- *   cursor -> .cursor/commands/chisme-search.md
- *   pi     -> .pi/skills/chisme-search/SKILL.md
+ * against the local index. One template per tool, embedded via `with { type: "file" }`;
+ * see VARIANTS for the per-agent destination paths.
  */
 import { mkdirSync, existsSync } from "node:fs";
 import { join } from "node:path";

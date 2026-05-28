@@ -1,6 +1,3 @@
-/**
- * `chisme sync` - fetch remote checkpoints and (re)index this repo.
- */
 import { syncRepo, configureEmbedder, isModelInstalled, type ModelProgress } from "@chisme/core";
 import { parseSyncArgs } from "../cli/args.ts";
 import { openDb } from "../cli/db.ts";

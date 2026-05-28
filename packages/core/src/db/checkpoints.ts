@@ -1,14 +1,10 @@
 /**
- * Read and write access to the `checkpoints` table and its FTS5 / vec0 mirrors.
- *
- * Writes are idempotent: upsert deletes any existing row for `(repo_id,
- * checkpoint_id)` along with its FTS and vector rows, then inserts fresh. Because
- * the checkpoint rowid is what FTS and vec key on, we re-link them to the new
- * rowid on every write. All of upsert runs in one transaction.
+ * upsert is idempotent: delete any existing row for `(repo_id, checkpoint_id)` and
+ * its FTS/vec rows, then insert fresh, all in one transaction. FTS and vec key on
+ * the checkpoint rowid, so both get re-linked to the new rowid on every write.
  */
 import type { Database } from "bun:sqlite";
 
-/** A checkpoint ready to be written to the index. */
 export interface CheckpointInput {
   repoId: number;
   checkpointId: string;
@@ -31,7 +27,6 @@ export interface CheckpointInput {
   embedding: Float32Array | null;
 }
 
-/** A checkpoint hydrated from the index, with its repo slug joined in. */
 export interface StoredCheckpoint {
   pk: number;
   repoId: number;
@@ -90,7 +85,7 @@ export function mapStored(row: CheckpointRow): StoredCheckpoint {
       const parsed = JSON.parse(row.files_touched);
       if (Array.isArray(parsed)) files = parsed as string[];
     } catch {
-      // leave empty
+      // malformed JSON: leave files empty
     }
   }
   return {
@@ -115,7 +110,6 @@ export function mapStored(row: CheckpointRow): StoredCheckpoint {
   };
 }
 
-/** The set of checkpoint ids already indexed for a repo. */
 export function knownCheckpointIds(db: Database, repoId: number): Set<string> {
   const rows = db.query("SELECT checkpoint_id FROM checkpoints WHERE repo_id = ?").all(repoId) as {
     checkpoint_id: string;
@@ -123,7 +117,6 @@ export function knownCheckpointIds(db: Database, repoId: number): Set<string> {
   return new Set(rows.map((r) => r.checkpoint_id));
 }
 
-/** Inserts or replaces a checkpoint, its FTS row, and (if present) its vector. */
 export function upsertCheckpoint(
   db: Database,
   input: CheckpointInput,
@@ -196,7 +189,7 @@ export function upsertCheckpoint(
   run();
 }
 
-/** Removes every row for a repo (and its FTS / vec mirrors). Used by `--full`. */
+/** Used by `--full`. */
 export function clearRepo(db: Database, repoId: number, vecAvailable: boolean): void {
   const run = db.transaction(() => {
     const pks = db.query("SELECT id FROM checkpoints WHERE repo_id = ?").all(repoId) as {
@@ -211,7 +204,6 @@ export function clearRepo(db: Database, repoId: number, vecAvailable: boolean): 
   run();
 }
 
-/** Most recent checkpoints, optionally scoped to one repo, with pagination. */
 export function recentCheckpoints(
   db: Database,
   opts: { repoId?: number; limit?: number; offset?: number } = {},
@@ -225,15 +217,11 @@ export function recentCheckpoints(
   return rows.map(mapStored);
 }
 
-/** A checkpoint plus its full concatenated transcript text (for detail views). */
 export interface CheckpointDetail extends StoredCheckpoint {
   transcriptText: string | null;
 }
 
-/**
- * One checkpoint by its Entire id, including the transcript blob. `repoSlug`
- * disambiguates when the same id exists in more than one indexed repo.
- */
+/** `repoSlug` disambiguates when the same id exists in more than one indexed repo. */
 export function getCheckpointDetail(
   db: Database,
   checkpointId: string,
@@ -262,7 +250,6 @@ export function getCheckpointDetail(
   return { ...mapStored(row), transcriptText: row.transcript_text };
 }
 
-/** Hydrates checkpoints by primary key, returned keyed by pk for fusion. */
 export function getCheckpointsByPks(db: Database, pks: number[]): Map<number, StoredCheckpoint> {
   const map = new Map<number, StoredCheckpoint>();
   if (pks.length === 0) return map;
@@ -274,7 +261,6 @@ export function getCheckpointsByPks(db: Database, pks: number[]): Map<number, St
   return map;
 }
 
-/** Total checkpoint count, optionally scoped to one repo. */
 export function countCheckpoints(db: Database, repoId?: number): number {
   const sql =
     repoId != null

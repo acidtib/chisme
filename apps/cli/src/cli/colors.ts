@@ -1,8 +1,6 @@
 /**
- * Minimal ANSI color helpers, no dependency.
- *
- * Colors are disabled when stdout is not a TTY or when NO_COLOR is set
- * (https://no-color.org). Each helper is a no-op string wrapper in that case.
+ * Colors are disabled when stdout is not a TTY or `NO_COLOR` is set
+ * (https://no-color.org); each helper is then a no-op string wrapper.
  */
 const enabled = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
 

@@ -1,16 +1,11 @@
 /**
- * Points bun:sqlite at an extension-capable SQLite on macOS.
- *
  * macOS's system SQLite (which Bun uses by default for a performance win) is built
  * without loadable extensions, so sqlite-vec can't load and semantic search degrades
- * to keyword-only. Database.setCustomSQLite() redirects bun:sqlite to a vanilla
- * SQLite that does support extensions. It must run before any Database is
- * constructed; setCustomSQLite throws once a database exists.
- *
- * Never throws out of here: on failure we stay on the system SQLite and search runs
- * keyword-only. No-op on Linux and Windows, where Bun's bundled SQLite already loads
- * extensions. Compiled macOS binaries use a self-contained libsqlite3 embedded by
- * build.ts; dev (running via bun) probes common Homebrew locations instead.
+ * to keyword-only. Database.setCustomSQLite() redirects bun:sqlite to a vanilla SQLite
+ * that does support them; it must run before any Database is constructed (it throws
+ * once one exists). Never throws out of here: on failure we stay on system SQLite,
+ * keyword-only. No-op on Linux and Windows. Compiled macOS binaries use a
+ * self-contained libsqlite3 embedded by build.ts; dev probes Homebrew locations.
  */
 import { Database } from "bun:sqlite";
 import { join } from "node:path";
@@ -48,11 +43,7 @@ async function resolveCustomSqlitePath(): Promise<string | null> {
   return null;
 }
 
-/**
- * On macOS, redirect bun:sqlite to an extension-capable SQLite so sqlite-vec can
- * load. No-op on other platforms and idempotent. Call once at startup, before
- * opening any database.
- */
+/** No-op off macOS and idempotent. Call once at startup, before opening any database. */
 export async function installCustomSqlite(): Promise<void> {
   if (installed) return;
   installed = true;

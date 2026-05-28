@@ -1,7 +1,5 @@
 #!/usr/bin/env bun
 /**
- * @chisme/server: HTTP API over @chisme/core.
- *
  * Read-only JSON API over the same engine the CLI uses. Routes:
  *   GET /api/health                 service + index status
  *   GET /api/repos                  indexed repos with counts and last-sync
@@ -9,10 +7,9 @@
  *   GET /api/checkpoints/:id        one checkpoint with its transcript (?repo)
  *   GET /api/search                 hybrid search (?q,&repo,&limit,&page,&author,&branch,&date,&semantic)
  *
- * Defaults to all indexed repos (the server is not bound to a working directory).
- * The web UI (Stage 2) talks to these routes; in dev it is served by Vite, which
- * proxies /api here, so same-origin. Permissive CORS is set anyway since this is a
- * local, read-only service over your own data.
+ * Defaults to all indexed repos (not bound to a working directory). The web UI (Stage 2)
+ * talks to these routes; in dev Vite proxies /api here, so same-origin. Permissive CORS
+ * is set anyway since this is a local, read-only service over your own data.
  */
 import {
   openDatabase,

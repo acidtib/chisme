@@ -118,7 +118,6 @@ export async function isEmbedderInstalled(): Promise<boolean> {
   }
 }
 
-/** Filesystem directory transformers.js caches this model's files under. */
 function modelDir(): string {
   return join(config.cacheDir ?? modelCacheDir(), ...MODEL.split("/"));
 }
@@ -141,7 +140,6 @@ export async function isModelInstalled(): Promise<boolean> {
   }
 }
 
-/** True once the model pipeline has loaded successfully. */
 export async function isEmbedderAvailable(): Promise<boolean> {
   await init();
   return available;

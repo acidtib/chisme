@@ -1,10 +1,7 @@
 /**
- * `chisme status` - index location, contents, and search capabilities.
- *
- * Reports without triggering side effects: capability checks use an in-memory db
- * and probe whether the embedder package and its model are present (both filesystem
- * checks, no model download). The index file is opened only if it already exists,
- * so status never creates it.
+ * Reports without side effects: capability checks use an in-memory db and probe the
+ * embedder package and model from the filesystem (no model download). The index file
+ * is opened only if it already exists, so status never creates it.
  */
 import { Database } from "bun:sqlite";
 import { existsSync } from "node:fs";
