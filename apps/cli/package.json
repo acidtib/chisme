@@ -1,6 +1,6 @@
 {
   "name": "chisme",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "type": "module",
   "description": "An Entire companion CLI: local search over your captured AI coding sessions.",
   "license": "MIT",

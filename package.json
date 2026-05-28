@@ -1,6 +1,6 @@
 {
   "name": "chisme",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "An Entire companion CLI: search your captured AI coding sessions locally, no entire.io account required.",

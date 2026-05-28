@@ -25,7 +25,7 @@ import {
 } from "@chisme/core";
 
 const PORT = Number(process.env.CHISME_PORT ?? 4123);
-const VERSION = "0.2.4";
+const VERSION = "0.3.0";
 
 const CORS = {
   "access-control-allow-origin": "*",
