@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { parseInlineFilters, parseListArgs, parseSearchArgs, parseSyncArgs } from "./args.ts";
+import {
+  parseEnableArgs,
+  parseInlineFilters,
+  parseListArgs,
+  parseSearchArgs,
+  parseSyncArgs,
+} from "./args.ts";
 
 describe("parseInlineFilters", () => {
   test("pulls a bare key:value out of the query", () => {
@@ -76,6 +82,46 @@ describe("parseSyncArgs", () => {
     expect(a.remote).toBe("upstream");
     expect(a.limit).toBe(5);
     expect(parseSyncArgs(["--limit", "0"]).limit).toBeUndefined();
+  });
+});
+
+describe("parseEnableArgs", () => {
+  test("reads --agent and injects telemetry/yes defaults", () => {
+    const a = parseEnableArgs(["--agent", "claude-code"]);
+    expect(a.agent).toBe("claude-code");
+    expect(a.help).toBe(false);
+    expect(a.forward).toEqual(["--telemetry=false", "--yes", "--agent", "claude-code"]);
+  });
+
+  test("supports --agent=value form", () => {
+    expect(parseEnableArgs(["--agent=codex"]).agent).toBe("codex");
+  });
+
+  test("does not inject defaults the caller already set", () => {
+    const a = parseEnableArgs(["--agent", "x", "--telemetry=true", "--yes"]);
+    expect(a.forward).toEqual(["--agent", "x", "--telemetry=true", "--yes"]);
+  });
+
+  test("an explicit --telemetry wins without duplicating the flag", () => {
+    const fwd = parseEnableArgs(["--agent", "x", "--telemetry"]).forward;
+    expect(fwd.filter((arg) => arg.startsWith("--telemetry")).length).toBe(1);
+    expect(fwd).not.toContain("--telemetry=false");
+    expect(fwd).toContain("--yes");
+  });
+
+  test("treats -y as yes so it is not re-added", () => {
+    const fwd = parseEnableArgs(["--agent", "x", "-y"]).forward;
+    expect(fwd).not.toContain("--yes");
+    expect(fwd).toContain("--telemetry=false");
+  });
+
+  test("detects --help and -h", () => {
+    expect(parseEnableArgs(["--help"]).help).toBe(true);
+    expect(parseEnableArgs(["-h"]).help).toBe(true);
+  });
+
+  test("leaves agent undefined when not given", () => {
+    expect(parseEnableArgs(["--yes"]).agent).toBeUndefined();
   });
 });
 

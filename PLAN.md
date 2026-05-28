@@ -51,7 +51,7 @@ These were decided with the user. Do not relitigate without asking.
 | Index location | One global multi-repo SQLite DB in the OS-native data dir: `~/Library/Application Support/chisme/chisme.db` (macOS), `%APPDATA%\chisme\chisme.db` (Windows), `~/.local/share/chisme/chisme.db` (Linux/XDG). `CHISME_DATA_DIR` overrides. Every checkpoint is tagged with its `owner/repo` slug. |
 | Team sync | `sync` must `git fetch` the remote `entire/checkpoints/v1` first, so it picks up teammates' pushed checkpoints, then index incrementally. |
 | `--repo` semantics | bare `search` = current repo (from cwd's git remote); `--repo owner/repo` = that repo; `--repo *` = all indexed repos. Local analogue of Entire's "all accessible repos". |
-| Stage 1 commands | `search`, `sync`, `status`, `list`, `agent install`. |
+| Stage 1 commands | `search`, `sync`, `status`, `list`, `agent install`, `enable`. |
 | Stage 2 (later) | `server` HTTP API over core plus `web` browser UI. Scaffolded now as stubs only. |
 | Distribution | Per-platform standalone binaries via `bun build --compile --target=...`, shipped through GitHub Releases with a `curl | bash` install script (see Section 11). |
 
@@ -327,6 +327,10 @@ Commands:
   agent install <agent>  Write the chisme-search subagent for an AI coding tool (agent required).
                         agent = claude, codex, gemini, cursor, pi, or all
                         --force       overwrite if present
+  enable              Run `entire enable` (forwarding all flags), then swap Entire's entire-search
+                        subagent for chisme-search. --agent <name> required (Entire's spelling,
+                        e.g. claude-code). Defaults --telemetry=false and --yes unless the caller
+                        sets them. Needs the Entire CLI on PATH.
   help [command]      Show help.
   version             Show version.
 

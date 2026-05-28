@@ -18,45 +18,97 @@ import geminiTemplate from "../agent/chisme-search.gemini.md" with { type: "file
 import cursorTemplate from "../agent/chisme-search.cursor.md" with { type: "file" };
 import piTemplate from "../agent/chisme-search.pi.md" with { type: "file" };
 
-interface AgentVariant {
+export interface AgentVariant {
   label: string;
   dir: string;
   file: string;
   template: string;
+  /** The Entire CLI `--agent` value this variant corresponds to. */
+  entireName: string;
+  /**
+   * Path (relative to the repo root) where `entire enable` writes its own
+   * `entire-search` subagent, which `chisme enable` removes in favor of ours.
+   * Entire only ships one for some agents; the path is still defined so a future
+   * Entire release that adds it gets cleaned up too.
+   */
+  entireSearch: string;
+  /** Whether `entireSearch` is a directory to remove wholesale (Pi's skill dir). */
+  entireSearchIsDir: boolean;
 }
 
-const VARIANTS: Record<string, AgentVariant> = {
+export const VARIANTS: Record<string, AgentVariant> = {
   claude: {
     label: "Claude Code",
     dir: join(".claude", "agents"),
     file: "chisme-search.md",
     template: claudeTemplate,
+    entireName: "claude-code",
+    entireSearch: join(".claude", "agents", "entire-search.md"),
+    entireSearchIsDir: false,
   },
   codex: {
     label: "Codex",
     dir: join(".codex", "agents"),
     file: "chisme-search.toml",
     template: codexTemplate,
+    entireName: "codex",
+    entireSearch: join(".codex", "agents", "entire-search.toml"),
+    entireSearchIsDir: false,
   },
   gemini: {
     label: "Gemini CLI",
     dir: join(".gemini", "agents"),
     file: "chisme-search.md",
     template: geminiTemplate,
+    entireName: "gemini",
+    entireSearch: join(".gemini", "agents", "entire-search.md"),
+    entireSearchIsDir: false,
   },
   cursor: {
     label: "Cursor",
     dir: join(".cursor", "commands"),
     file: "chisme-search.md",
     template: cursorTemplate,
+    entireName: "cursor",
+    entireSearch: join(".cursor", "commands", "entire-search.md"),
+    entireSearchIsDir: false,
   },
   pi: {
     label: "Pi",
     dir: join(".pi", "skills", "chisme-search"),
     file: "SKILL.md",
     template: piTemplate,
+    entireName: "pi",
+    entireSearch: join(".pi", "skills", "entire-search"),
+    entireSearchIsDir: true,
   },
 };
+
+/** Looks up a variant by the Entire CLI agent name (e.g. `claude-code`). */
+export const VARIANT_BY_ENTIRE_NAME: Record<string, AgentVariant> = Object.fromEntries(
+  Object.values(VARIANTS).map((v) => [v.entireName, v]),
+);
+
+/**
+ * Writes one variant's subagent into the current repo. Returns whether it wrote
+ * or skipped (an existing file without `--force`). Shared by `agent install` and
+ * `enable`.
+ */
+export async function installVariant(
+  variant: AgentVariant,
+  force: boolean,
+): Promise<"wrote" | "skipped"> {
+  const dir = join(process.cwd(), variant.dir);
+  const dest = join(dir, variant.file);
+  if (existsSync(dest) && !force) {
+    console.error(`chisme: ${dest} already exists. Use --force to overwrite.`);
+    return "skipped";
+  }
+  mkdirSync(dir, { recursive: true });
+  await Bun.write(dest, await Bun.file(variant.template).text());
+  console.log(`Wrote ${dest} (${variant.label})`);
+  return "wrote";
+}
 
 const HELP = `chisme agent install <agent> [--force]
 
@@ -109,18 +161,9 @@ export async function cmdAgent(argv: string[]): Promise<void> {
   let wrote = 0;
   let skipped = 0;
   for (const name of names) {
-    const variant = VARIANTS[name]!;
-    const dir = join(process.cwd(), variant.dir);
-    const dest = join(dir, variant.file);
-    if (existsSync(dest) && !force) {
-      console.error(`chisme: ${dest} already exists. Use --force to overwrite.`);
-      skipped++;
-      continue;
-    }
-    mkdirSync(dir, { recursive: true });
-    await Bun.write(dest, await Bun.file(variant.template).text());
-    console.log(`Wrote ${dest} (${variant.label})`);
-    wrote++;
+    const result = await installVariant(VARIANTS[name]!, force);
+    if (result === "wrote") wrote++;
+    else skipped++;
   }
 
   if (wrote > 0) console.log("The chisme-search subagent calls 'chisme search --json'.");

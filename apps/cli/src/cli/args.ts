@@ -118,6 +118,44 @@ export function parseSyncArgs(argv: string[]): SyncArgs {
   };
 }
 
+export interface EnableArgs {
+  /** The Entire `--agent` value, needed to pick the chisme-search variant. */
+  agent?: string;
+  help: boolean;
+  /** Arguments to pass to `entire enable`: the caller's argv plus injected defaults. */
+  forward: string[];
+}
+
+/**
+ * Parses `chisme enable` arguments. Unlike the other commands we do not validate
+ * flags here: everything is forwarded to `entire enable`, so any flag that CLI
+ * accepts works. We only pull out `--agent` (to choose the chisme-search variant)
+ * and `--help`/`-h` (to show chisme's help instead of running anything).
+ *
+ * We inject `--telemetry=false` and `--yes` as defaults so `chisme enable` is
+ * private and non-interactive out of the box. Each is added only when the caller
+ * did not already set it (so `--telemetry`/`--telemetry=true` or `-y`/`--yes`
+ * still wins, with no duplicate flag).
+ */
+export function parseEnableArgs(argv: string[]): EnableArgs {
+  let agent: string | undefined;
+  let help = false;
+  let hasTelemetry = false;
+  let hasYes = false;
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    if (arg === "--help" || arg === "-h") help = true;
+    else if (arg === "--agent") agent = argv[i + 1];
+    else if (arg.startsWith("--agent=")) agent = arg.slice("--agent=".length);
+    else if (arg === "--telemetry" || arg.startsWith("--telemetry=")) hasTelemetry = true;
+    else if (arg === "--yes" || arg === "-y") hasYes = true;
+  }
+  const defaults: string[] = [];
+  if (!hasTelemetry) defaults.push("--telemetry=false");
+  if (!hasYes) defaults.push("--yes");
+  return { agent, help, forward: [...defaults, ...argv] };
+}
+
 export interface ListArgs {
   repo?: string;
   limit: number;

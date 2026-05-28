@@ -64,6 +64,12 @@ Applies to code comments, docs, commit messages, PR descriptions, and chat respo
 - chisme is read-only over git checkpoint data. It never writes to the `entire/checkpoints/v1`
   branch and never installs agent hooks.
 - Keep writes to the index idempotent so re-syncs are safe.
+- `chisme enable` is the only command that spawns `entire enable`. It forwards your args, injecting
+  `--telemetry=false` and `--yes` as defaults (pass them yourself to override), then removes Entire's
+  `entire-search` subagent file and writes ours in its place. The cursor/pi `entireSearch` paths in
+  `apps/cli/src/commands/agent.ts` `VARIANTS` are forward-defensive: Entire 0.6.2 ships an
+  `entire-search` only for claude-code/codex/gemini, but a future release might add the others, and we
+  want enable to clean them up too.
 - The compiled binary embeds the sqlite-vec extension and the onnxruntime-web WASM, and stubs the
   native `onnxruntime-node` / `sharp` imports at build time. On macOS it also embeds a vanilla
   `libsqlite3` and calls `Database.setCustomSQLite()` at startup (see `src/runtime/sqlite.ts`),

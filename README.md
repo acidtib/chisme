@@ -55,6 +55,7 @@ chisme list                    # list recent checkpoints
 chisme status                  # index and environment status
 chisme agent install <agent>   # install the chisme-search subagent (agent required)
                                #   agent: claude | codex | gemini | cursor | pi | all
+chisme enable --agent <name>   # run `entire enable`, then swap in chisme-search
 chisme version                 # version and capabilities
 chisme help                    # help
 ```
@@ -65,6 +66,12 @@ history by calling `chisme search --json`. The agent is required. Supported agen
 (`.codex/agents/chisme-search.toml`), Gemini CLI (`.gemini/agents/chisme-search.md`),
 Cursor (`.cursor/commands/chisme-search.md`), and Pi
 (`.pi/skills/chisme-search/SKILL.md`). Use `all` to install every variant.
+
+`chisme enable --agent <name> [entire enable flags]` is a convenience wrapper for setting up a
+repo from scratch. It runs `entire enable` with every flag you pass (the agent name uses Entire's
+spelling, e.g. `claude-code`), then removes the `entire-search` subagent Entire installs (it searches
+the hosted service) and writes chisme-search in its place. Agents with no
+chisme-search variant are still enabled; the swap is just skipped. Requires the Entire CLI on your PATH.
 
 ## How it works
 

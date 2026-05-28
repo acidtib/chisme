@@ -16,6 +16,7 @@ import { cmdSync } from "./commands/sync.ts";
 import { cmdList } from "./commands/list.ts";
 import { cmdStatus } from "./commands/status.ts";
 import { cmdAgent } from "./commands/agent.ts";
+import { cmdEnable } from "./commands/enable.ts";
 
 // Replaced at build time via `--define BUILD_VERSION`; falls back in dev.
 declare const BUILD_VERSION: string | undefined;
@@ -31,6 +32,7 @@ Commands:
   status            Show index and environment status
   list              List recent checkpoints
   agent install     Write a chisme-search subagent (claude, codex, gemini, cursor, pi, all)
+  enable            Enable Entire for an agent, swapping in the chisme-search subagent
   help [command]    Show help
   version           Show version and capabilities
 
@@ -53,7 +55,7 @@ async function cmdVersion(): Promise<void> {
   );
 }
 
-const COMMANDS = new Set(["search", "sync", "list", "status", "agent"]);
+const COMMANDS = new Set(["search", "sync", "list", "status", "agent", "enable"]);
 
 async function main(): Promise<void> {
   // macOS uses Apple's extension-less SQLite by default; redirect bun:sqlite to a
@@ -88,6 +90,7 @@ async function main(): Promise<void> {
     case "list":
     case "status":
     case "agent":
+    case "enable":
       await dispatch(command, rest);
       return;
     default:
@@ -108,6 +111,8 @@ async function dispatch(command: string, rest: string[]): Promise<void> {
       return cmdStatus(VERSION);
     case "agent":
       return cmdAgent(rest);
+    case "enable":
+      return cmdEnable(rest);
   }
 }
 
