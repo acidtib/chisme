@@ -1,0 +1,57 @@
+when running 
+
+entire enable --agent claude-code --telemetry false --yes
+
+depending on the agent it will create a file for the entire-search you can see how it works here https://github.com/entireio/cli 
+
+entire it self has no way of telling it to not add the file, so i want to add a new command to chisme called enable
+
+when we run that command it should run the equivalent of `entire enable --agent claude-code --telemetry false --yes` with the specified agent and options taht are passed to entire as arguments to the enable command, it deletes the genrated entire-search agent skill and it add ours the same as chisme agent install 
+
+ heres the entire one that they support > entire enable --help
+Enable Entire with session tracking for your AI agent workflows.
+
+If Entire is not yet configured, this runs the full configuration flow.
+If Entire is already configured but disabled, this re-enables it.
+
+If the current directory is not a git repository, Entire can initialize one
+for you and (optionally) create a matching GitHub repository via the gh CLI.
+
+Usage:
+  entire enable [flags]
+
+Flags:
+      --absolute-git-hook-path          Embed full binary path in git hooks (for GUI git clients that don't source shell profiles)
+      --agent string                    Agent to set up hooks for (e.g., claude-code, codex, copilot-cli, cursor, factoryai-droid, gemini, opencode, pi; external agents on $PATH are also available). Enables non-interactive mode.
+      --checkpoint-remote string        Checkpoint remote in provider:owner/repo format (e.g., github:org/checkpoints-repo)
+  -f, --force                           Force reinstall hooks (removes existing Entire hooks first)
+  -h, --help                            help for enable
+      --init-repo                       If not a git repo, initialize one non-interactively
+      --initial-commit-message string   Commit message for the initial commit when bootstrapping a new repo
+      --local                           Write settings to .entire/settings.local.json instead of .entire/settings.json
+      --no-github                       Initialize local git repo only; skip creating a GitHub remote
+      --no-init-repo                    If not a git repo, exit instead of prompting to initialize one
+      --project                         Write settings to .entire/settings.json even if it already exists
+      --repo-name string                GitHub repository name for the new repo (used when bootstrapping)
+      --repo-owner string               GitHub user or organization login for the new repo
+      --repo-visibility string          GitHub repository visibility: public, private, or internal
+      --skip-initial-commit             Don't create the initial commit when bootstrapping a new repo
+      --skip-push-sessions              Disable automatic pushing of session logs on git push
+      --telemetry                       Enable anonymous usage analytics (default true)
+  -y, --yes                             Accept all defaults without prompting (in a non-repo directory: init git, create private GitHub repo, commit; then enable all agents and accept telemetry)
+
+---
+
+we want to treat --telemetry=false --yes as defaults
+
+---
+
+/code-review --fix
+
+---
+
+/claude-md-management:claude-md-improver
+
+---
+
+ok
